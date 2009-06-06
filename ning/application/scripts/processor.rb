@@ -1,1 +1,1 @@
-require '../db'
+require File.dirname(__FILE__) + "/../db.rb"
