@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'sinatra'
 require 'data_mapper'
+require 'json'
 require 'haml'
 
 require 'models/tag'
@@ -11,34 +12,39 @@ require 'models/review'
 require 'models/question'
 require 'models/user'
 
-# Setup the DB
-
+# Setup
 DataMapper.setup(:default, {
   :adapter => 'sqlite3',
   :database => 'development.db'
 })
+DataMapper::Logger.new(STDOUT, :debug)
 
-# TODO process Steve's data here
+set :sessions, true
+set :root, File.dirname(__FILE__)
 
-DataMapper.auto_migrate!
+# ROUTES
+get "/" do 
+  haml :'dashboards/index'
+end
 
-
-# Pages
-# Product page
 get "/products/:id" do |id|
-  "Product #{id}"
+  @product = Product.get(id);
+  haml :'products/summary'
 end
 
+# Recommend dashboard
 get "/recommend" do 
-  "Recommendation Dashboard"
+  haml :'dashboards/recommend'
 end
 
-# Get a question
+# Get a question (JSON)
 get "/questions/next" do
+  content_type 'text/json'
   "Next question"
 end
 
-# Answer a question
+# Answer a question (JSON)
 put "/questions/:id" do |id|
+  content_type 'text/json'
   "You answered question #{id}"
 end
