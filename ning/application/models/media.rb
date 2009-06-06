@@ -8,6 +8,7 @@ class Media
 end
 
 class Photo < Media
+  property :uri, String
   property :url, String
   property :width, Integer
   property :height, Integer
