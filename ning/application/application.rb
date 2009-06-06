@@ -3,7 +3,7 @@ require 'sinatra'
 require 'data_mapper'
 require 'haml'
 
-require 'models/label'
+require 'models/tag'
 require 'models/media'
 require 'models/product'
 require 'models/purchase_point'
@@ -15,7 +15,7 @@ require 'models/user'
 
 DataMapper.setup(:default, {
   :adapter => 'sqlite3',
-  :database => 'development.rb'
+  :database => 'development.db'
 })
 
 # TODO process Steve's data here
