@@ -1,8 +1,3 @@
-require 'rubygems'
-require 'data_mapper'
+require '../db'
 
-DataMapper.setup(:default, {
-  :adapter => 'sqlite3',
-  :database => 'development.db'
-})
 DataMapper.auto_migrate!

@@ -4,6 +4,8 @@ require 'data_mapper'
 require 'json'
 require 'haml'
 
+require 'db'
+
 require 'models/tag'
 require 'models/media'
 require 'models/product'
@@ -13,14 +15,17 @@ require 'models/question'
 require 'models/user'
 
 # Setup
-DataMapper.setup(:default, {
-  :adapter => 'sqlite3',
-  :database => 'development.db'
-})
-DataMapper::Logger.new(STDOUT, :debug)
-
 set :sessions, true
 set :root, File.dirname(__FILE__)
+
+# Before filters
+before do
+  # User detection (strategies)
+  # 1) User set in the cookie?
+  # 2) Lookup via IP
+  # 3) Create new user and set in cookie
+  # End: @user is set
+end
 
 # ROUTES
 get "/" do 
