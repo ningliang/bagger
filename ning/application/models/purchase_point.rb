@@ -2,13 +2,9 @@ class PurchasePoint
   include DataMapper::Resource
   
   property :id, Serial
+  property :name, String
+  property :address, String
   property :price, Float
-end
-
-class StorePurchasePoint < PurchasePoint
   
-end
-
-class WebsitePurchasePoint < PurchasePoint
-  property :url, String
+  belongs_to :product
 end

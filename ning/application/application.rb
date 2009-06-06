@@ -8,7 +8,7 @@ require 'models/media'
 require 'models/product'
 require 'models/purchase_point'
 require 'models/review'
-require 'models/selection'
+require 'models/question'
 require 'models/user'
 
 # Setup the DB
@@ -23,18 +23,22 @@ DataMapper.setup(:default, {
 DataMapper.auto_migrate!
 
 
-# Responses
-get '/' do
-  "INDEX"
+# Pages
+# Product page
+get "/products/:id" do |id|
+  "Product #{id}"
 end
 
+get "/recommend" do 
+  "Recommendation Dashboard"
+end
 
+# Get a question
+get "/questions/next" do
+  "Next question"
+end
 
-
-#/ - index
-#/products/:id/select
-#/selections/:id/select
-#/products/search?{params}
-
-
-
+# Answer a question
+put "/questions/:id" do |id|
+  "You answered question #{id}"
+end
