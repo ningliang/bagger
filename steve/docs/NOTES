@@ -1,0 +1,30 @@
+This is a general place for notes to be placed and kept.
+
+The general architecture of cobra/steve:
+
+cobra/steve/... - the main "steve" python codebase.  has the following subdirectories:
+
+crawler - tools related to crawling and local caching of HTTP requests.  Also an interface
+          to allow you to iterate over the fetched results
+
+grinder - tools related to processing large amounts of raw input (e.g. that output by the
+		  crawler) and generating clean, standardized output
+
+codecs  - tools related to reading and writing data as produced or consumed by other tools.
+          for instance, this will contain the code to read and write the "ning+steve common data language" format.
+
+third_party - various third party libraries and tools
+
+util    - various commonly useful tools that are in some sense cross-module
+
+app     - the basic python applicatin framework used by all apps in cobra.steve - handles
+		  things like parsing commandline flags, setting up logging, and other such
+		  application-level macros
+
+scripts - various "binary" python scripts that are meant to actually be executed, rather than just
+          imported.  this is where ALL final executable code is store.
+
+docs    - a place for all documentation.
+
+
+		  
