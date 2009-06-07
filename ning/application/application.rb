@@ -3,16 +3,7 @@ require 'sinatra'
 require 'data_mapper'
 require 'json'
 require 'haml'
-
 require 'db'
-
-require 'models/tag'
-require 'models/media'
-require 'models/product'
-require 'models/purchase_point'
-require 'models/review'
-require 'models/question'
-require 'models/user'
 
 # Setup
 set :sessions, true
@@ -34,7 +25,8 @@ end
 
 get "/products/:id" do |id|
   @product = Product.get(id);
-  haml :'products/summary'
+  raise NotFound unless @product
+  haml :'products/full'
 end
 
 # Recommend dashboard

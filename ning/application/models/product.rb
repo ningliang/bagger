@@ -3,8 +3,9 @@ class Product
   
   property :id, Serial
   property :name, String
+  property :description, String
   
-  has n, :medias
+  has n, :photos
   has n, :purchase_points
   has n, :reviews
   has n, :tags, :through => Resource
