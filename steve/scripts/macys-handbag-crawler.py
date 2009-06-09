@@ -5,10 +5,10 @@ Longer, more detailed descrption.
 
 
 from cobra.steve.util.prelude import *
-from cobra.steve.crawler import fetcher, caches
-from cobra.steve.third_party.BeautifulSoup import *
+from cobra.steve.crawler import fetcher, caches, crawler
+from cobra.steve.indexing import repos, resources
 
-import urlparse
+flags.DefineBoolean('delete_existing_repos', False, "If true, delete the existing repository before crawling.")
 
 
 def FindAllClass(soup, tag, class_rx):
@@ -16,50 +16,7 @@ def FindAllClass(soup, tag, class_rx):
   return soup.findAll(tag, attrs={'class': re.compile(class_rx)})
 
 
-class Crawler(object):
-  # TODO(fedele): move this class to cobra.steve.crawler
-
-  def __init__(self, seed_urls):
-    self.urls_seen = set()
-    self.urls_to_process = []
-    self._cur_url = None
-    self.AddUrls(seed_urls)
-
-  def AddUrls(self, urls):
-    """Add multiple urls to be crawled."""
-    map(self.AddUrl, urls)
-
-  def AddUrl(self, url):
-    """Add a single url to be crawled."""
-    if url:
-      full_url = urlparse.urljoin(self.CurrentUrl(), url)
-      self.urls_to_process.append(full_url)
-
-  def CurrentUrl(self):
-      return self._cur_url
-
-  def Run(self):
-    """Runs the crawler.  Does not return until the entire
-    crawl space has been explored.  As such, this may take awhile."""
-    while self.urls_to_process:
-      url = self.urls_to_process.pop(random.randint(0, len(self.urls_to_process) - 1))
-      if url in self.urls_seen:
-        continue
-      self._cur_url = url
-      print >> sys.stderr, "fetching [%-150s]..." % url[:150]
-      self.urls_seen.add(url)
-      data = fetcher.FetchUrl(url)
-      soup = BeautifulSoup(data)
-      self.Process(url, soup)
-
-  def Process(self, url, soup):
-    """If the given URL is fetched successfully, this method is called as
-    a callback.  Implement application specific processing behavior here."""
-    raise NotImplementedError
-
-
-
-class MacysCrawler(Crawler):
+class MacysCrawler(crawler.Crawler):
   def Process(self, url, soup):
     if re.search(r'PageID=[0-9]+', url):
       self.ProcessCategoryPage(url, soup)
@@ -109,6 +66,10 @@ class MacysCrawler(Crawler):
       # print h2_text, price
       assert href == href2
       self.AddUrl(href)
+      if img_src:
+        self.CacheDataForUrl(href, 'img-thumbnail', img_src)
+      if price:
+        self.CacheDataForUrl(href, 'price', price)
     pass
 
   def ProcessDetailPage(self, url, soup, detail_div):
@@ -133,15 +94,16 @@ class MacysCrawler(Crawler):
 
     short_detail = detail_div.h1.contents[0]
     long_detail = FindAllClass(detail_div, 'div', 'productDetailLong')[0].contents[0]
-    print short_detail, long_detail
 
     details = [li.contents[0] for li in FindAllClass(detail_div, 'ul', 'prodInfoList')[0].findAll('li')]
     # TODO(fedele): extract webid, and dimensions
     price = FindAllClass(detail_div, 'span', 'productDetailPrice')[0].contents[0].strip()
 
-    more_views_div = FindAllClass(soup, 'div', 'moreViews')[0]
-    # TODO(fedele): ensure that this 
-    big_images = [i['value'] for i in more_views_div.findAll('input')]
+    try:
+      more_views_div = FindAllClass(soup, 'div', 'moreViews')[0]
+      big_images = [i['value'] for i in more_views_div.findAll('input')]
+    except IndexError:
+      big_images = []
 
     colors = []
     color_select = soup.find('select', attrs={'id': 'color0'})
@@ -150,14 +112,28 @@ class MacysCrawler(Crawler):
         if opt['value'] == "NOSELECTION":
           continue
         colors.append(opt['value'])
-    print big_images, colors
-      
+
+    url_data = self.GetCachedData(url)
+    images = big_images
+    if 'img-thumbnail' in url_data:
+      images.append(url_data['img-thumbnail'])
+    details_blob = "%s\n\n%s\n\n%s\n\n" % (short_detail, long_detail,
+                                           '\n'.join("* %s" % d for d in details))
+    purchase_point = resources.PurchasePoint(src_url=url,
+                                             handbag_name=short_detail,
+                                             breadcrumbs=breadcrumbs,
+                                             colors=colors,
+                                             price=price,
+                                             images=images,
+                                             details=details_blob)
+    self.repos.AddPurchasePoint(purchase_point)
 
 
 def main(argv):
   random.seed(1337)
   seed_urls = ['http://www1.macys.com/catalog/index.ognc?CategoryID=27691&PageID=118933769578245&kw=Clutches %26 Occasion']
-  crawler = MacysCrawler(seed_urls)
+  local_repo = repos.LocalRepository('/tmp/myrepos', delete_existing_repos=FLAGS.delete_existing_repos)
+  crawler = MacysCrawler(local_repo, seed_urls)
   crawler.Run()
 
 

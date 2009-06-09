@@ -29,7 +29,7 @@ class FlagParser(object):
 
   def _Define(self, value_type, flag_name, default, description):
     # TODO(fedele): output a reasonable error message here
-    assert re.match(r'^[-A-Za-z]+$', flag_name)
+    assert re.match(r'^[-A-Za-z_]+$', flag_name)
     self.parser.add_option("--%s" % flag_name,
                            dest=flag_name,
                            default=default,
@@ -47,7 +47,7 @@ class FlagParser(object):
 
   def _DefineBoolean(self, flag_name, default, description):
     # TODO(fedele): output a reasonable error message here
-    assert re.match(r'^[-A-Za-z]+$', flag_name)
+    assert re.match(r'^[-A-Za-z_]+$', flag_name)
     true_name = "--%s" % flag_name
     false_name = "--no%s" % flag_name
     self.parser.add_option(true_name, action="store_true", dest=flag_name,
