@@ -3,8 +3,9 @@ class PurchasePoint
   
   property :id, Serial
   property :name, String
-  property :address, String
-  property :price, Float
+  property :color, String
+  property :source, String
+  property :price, String
   
   belongs_to :product
 end

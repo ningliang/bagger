@@ -4,6 +4,8 @@ class Question
   property :id, Serial
   property :choice, Integer
   property :type, Discriminator
+  property :created, DateTime
+  property :modified, DateTime
   
   belongs_to :user
 end

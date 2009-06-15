@@ -1,8 +1,12 @@
 !!! Strict
 %html{ html_attrs("en_us") }
-  %title= "Bagging"
-  %script{ :type => "text/javascript", :src => "/js/lib/jquery.min.js"}
-  %script{ :type => "text/javascript", :src => "/js/lib/"}
+  %title= "HandBaggin'"
+  %script{ :type => "text/javascript", :src => "/js/lib/jquery.js" }
 %body
+  %h2= "HandBaggin'"
   = yield
-  
+  #modal
+    #message
+    %a#close{ :href => "#" }= "CLOSE"
+:javascript
+  //$(function() {var ms = $('#modal').setModal();});
