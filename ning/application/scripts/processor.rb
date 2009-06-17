@@ -1,8 +1,5 @@
 require File.dirname(__FILE__) + "/../db.rb"
 
-# Convenience counts
-
-
 # Function for processing a single file
 def process(file) 
   File.open(file, "r") do |fh|
@@ -18,25 +15,28 @@ def process(file)
       end
       
       # Names, details, tags, photos, purchase points      
-      if fields.has_key?("name") and fields.keys.size == 1 and object_name == "tag"
-        product.name = fields["name"]        
-      elsif fields.has_key?("details") and object_name == "tag"
-        product.details = fields["details"]
-      elsif object_name == "tag"
-        unless product.tags.first(:name => fields["name"])
-          # Need a special conversion here since we lump the rest into "meta"
-          tag = Tag.create    
-          tag.name = fields.delete("name")
-          tag.type = fields.delete("type")
-          tag.meta = fields
-          product.tags << tag 
-        end          
-      elsif object_name == "photo"
-        unless product.photos.first(:url => fields["url"])
-          product.photos << Photo.create(fields)  
+      if object_name == "tag"
+        if fields.keys.size == 1
+          product.name = fields["name"]
+        elsif fields["type"] == "details"
+          product.description = fields["name"]
+        else 
+          tag = Tag.first(:name => fields["name"], :type => fields["type"])
+          unless tag
+            tag = Tag.create
+            tag.name = fields.delete("name")
+            tag.type = fields.delete("type")
+            tag.meta = fields
+            tag.save
+          end
+          product.tags << tag
         end
+      elsif object_name == "photo"
+        # Don't take in duplicates (happens with optimized images)
+        fields["url"] = fields["url"].split("%3F").first
+        product.photos << Photo.create(fields) unless Photo.first(:url => fields["url"])
       elsif object_name == "purchase_point"
-        unless product.purchase_points.first(fields)
+        unless product.purchase_points.first(fields)    
           product.purchase_points << PurchasePoint.create(fields)
         end
       else
@@ -46,7 +46,6 @@ def process(file)
     if Product.first(:name => product.name)
       product.destroy
     else
-      puts "Saving product with name #{product.name}"
       product.save
     end
   end  
@@ -66,4 +65,10 @@ dir = ARGV[0]
 Dir.entries(ARGV[0]).each do |file| 
   process("#{dir}/#{file}") unless ["..", ".", ".DS_Store"].include?(file)
 end
+
+# Log results to STDOU
+puts "#{Product.all.count} products"
+puts "#{Photo.all.count} photos"
+puts "#{Tag.all.count} tags"
+puts "#{PurchasePoint.all.count} purchase points"
   

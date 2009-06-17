@@ -2,11 +2,11 @@
 %html{ html_attrs("en_us") }
   %title= "HandBaggin'"
   %script{ :type => "text/javascript", :src => "/js/lib/jquery.js" }
+  %script{ :type => "text/javascript", :src => "/js/lib/json.js" }
+  %script{ :type => "text/javascript", :src => "/js/lib/jqmodal.js" }
+  %script{ :type => "text/javascript", :src => "/js/lib/constants.js" }
+  %script{ :type => "text/javascript", :src => "/js/lib/utility.js" }
+  %script{ :type => "text/javascript", :src => "/js/lib/request_proxy.js" }
 %body
-  %h2= "HandBaggin'"
+  %h2= "HandBags!!"
   = yield
-  #modal
-    #message
-    %a#close{ :href => "#" }= "CLOSE"
-:javascript
-  //$(function() {var ms = $('#modal').setModal();});

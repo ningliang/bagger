@@ -1,13 +1,15 @@
 require 'rubygems'
 require 'sinatra'
-require 'data_mapper'
-require 'json'
+require 'json/pure'
 require 'haml'
 require 'db'
 
 # Setup
 set :sessions, true
 set :root, File.dirname(__FILE__)
+
+mime :json, "application/json"
+#mime :json, "text/json"
 
 # Before filters
 before do
@@ -44,32 +46,32 @@ end
 
 # Generate a question (JSON)
 post "/questions" do
-  content_type 'text/json'  
-  # TODO call over to Steve's service, giving all data  
-  # For now just create an unanswered tag or product question
+  content_type :json
+  
+  # Create a tag question
   question = nil
-  n = rand(2)
-  if (n == 0)
+  if rand(2) == 0
     question = TagQuestion.create
     count = Tag.all.count
     4.times do 
-      n = rand(count) + 1
-      question.tags << Tag.get(n)
+      tag = Tag.get(rand(count))
+      question.tags << Tag.get(rand(count)) 
     end
-  else
+  else 
     question = ProductQuestion.create
     count = Product.all.count
-    2.times do
-      n = rand(count) + 1
-      question.products << Product.get(n)
+    3.times do
+      product = Product.get(rand(count))
+      question.products << product
     end
   end
+  question.save
   question.to_json
 end
 
 # Answer a question
 put "/questions/:id" do |id|
-  content_type 'text/json'  
+  content_type :json
   question = Question.get(id)
   raise NotFound unless question
   choice, choice_id = nil, params[:choice].to_i

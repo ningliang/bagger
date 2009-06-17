@@ -2,9 +2,8 @@ class PurchasePoint
   include DataMapper::Resource
   
   property :id, Serial
-  property :name, String
   property :color, String
-  property :source, String
+  property :source, String, :length => 1..500
   property :price, String
   
   belongs_to :product
