@@ -1,0 +1,2 @@
+var PHOTO_WIDTH = 163;
+var PHOTO_HEIGHT = 200;
