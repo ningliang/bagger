@@ -1,9 +1,9 @@
 BASE_URL = window.location.protocol + "//" + window.location.host;
 
-GET = 'get';
-POST = 'post';
-PUT = 'put';
-DELETE = 'delete';
+GET = 'GET';
+POST = 'POST';
+PUT = 'PUT';
+DELETE = 'DELETE';
 
 OK = 200;
 UNAUTHORIZED = 401;
@@ -14,8 +14,8 @@ SERVER_ERROR = 500;
 function RequestProxy() {
 	function request(path, method, data, successHandler, errorHandler) {
 		data = data || {};
-		data['_method'] = method;
-		if (method == PUT || method == DELETE) method = POST;
+		// data['_method'] = method;
+		// if (method == PUT || method == DELETE) method = POST;
 		
 		// AJAX parameters
 		var options = {
@@ -26,7 +26,7 @@ function RequestProxy() {
 			data: JSON.stringify(data),
 			cache: false,
 			success: function(response) { if (successHandler) successHandler(response); },
-			error: function(request, status, error) { if (errorHandler) errorHandler(request.status, JSON.parse(request.responseText)); }
+			error: function(request, status, error) { if (errorHandler) errorHandler(request.status, request.responseText); }
 		}
 		
 		$.ajax(options);

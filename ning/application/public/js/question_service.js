@@ -4,6 +4,6 @@ function QuestionService() {
 	var proxy = RequestProxy.getInstance();
 	
 	this.generate = function(successHandler, errorHandler) { proxy.post(path, null, successHandler, errorHandler); }
-	this.answer = function(data, successHandler, errorHandler) { proxy.put(path, data, successHandler); }
+	this.answer = function(data, successHandler, errorHandler) { proxy.put(path + "/" + data.id, data, successHandler, errorHandler); }
 }
 makeSingleton(QuestionService);

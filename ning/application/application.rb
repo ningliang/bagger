@@ -2,6 +2,9 @@ require 'rubygems'
 require 'sinatra'
 require 'json/pure'
 require 'haml'
+require 'cgi'
+require 'constants'
+require 'exceptions'
 require 'db'
 
 # Setup
@@ -18,6 +21,10 @@ before do
   # 2) Lookup via IP
   # 3) Create new user and set in cookie
   # End: @user is set
+  
+  # Set a humorous title
+  titles = ["Hndbggr", "Bagfoo", "BUY HANDBAGS", "We Be Baggin'", "Baggalicious"]
+  @title = titles[rand(titles.size)]
 end
 
 # Helpers
@@ -48,6 +55,7 @@ end
 post "/questions" do
   content_type :json
   
+  # TODO steve will generate the question
   # Create a tag question
   question = nil
   if rand(2) == 0
@@ -75,15 +83,15 @@ put "/questions/:id" do |id|
   question = Question.get(id)
   raise NotFound unless question
   choice, choice_id = nil, params[:choice].to_i
-  case question.type
-    when ProductQuestion then choice = Product.get(choice_id)
-    when TagQuestion then choice = Tag.get(choice_id)
+
+  choice = case question.type.to_s
+    when "ProductQuestion" then Product.get(choice_id)
+    when "TagQuestion" then Tag.get(choice_id)
+    else raise NotAcceptable
   end
+  
   raise NotAcceptable unless choice
   question.choice = choice
-  if question.save 
-    json_response(200, :success => true) 
-  else
-    json_response (500, :errors => question.errors)
-  end
+  raise ServerError unless question.save
+  json_response(200, :success => true)
 end

@@ -4,7 +4,7 @@
     %h3= "Photos"
     - @product.photos.all.each do |photo|
       - src = photo.uri || photo.url
-      %img{ :src => "#{src}", :width => photo.width, :height => photo.height }
+      %img{ :src => "#{CGI::unescape(src)}", :width => PHOTO_WIDTH, :height => PHOTO_HEIGHT }
   .description= @product.description
   .tags
     - @product.tags.all.to_a.join(", ")
@@ -12,6 +12,6 @@
     %h3= "Buy Here"
     - @product.purchase_points.all.each do |purchase_point|
       .purchase-point
-        .name= purchase_point.name
-        .address= purchase_point.address
+        .color= purchase_point.color
+        %a.source{:href => CGI::unescape(purchase_point.source) }= "BUY"
         .price= purchase_point.price

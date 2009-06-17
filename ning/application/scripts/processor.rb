@@ -1,10 +1,15 @@
 require File.dirname(__FILE__) + "/../db.rb"
 
-# Function for processing a single file
+# Function for processing a single file (product)
 def process(file) 
   File.open(file, "r") do |fh|
     # Create the new product
     product = Product.create
+    
+    # Cache photos, purchase points so we don't need a db fetch to check dupes
+    product_photos = {}
+    product_purchase_points = {}
+    
     while (line = fh.gets)
       # Parse object type, fields
       object_name, field_string = line.split(":")
@@ -21,7 +26,7 @@ def process(file)
         elsif fields["type"] == "details"
           product.description = fields["name"]
         else 
-          tag = Tag.first(:name => fields["name"], :type => fields["type"])
+          tag = Tag.first(:name => fields["name"])
           unless tag
             tag = Tag.create
             tag.name = fields.delete("name")
@@ -34,21 +39,30 @@ def process(file)
       elsif object_name == "photo"
         # Don't take in duplicates (happens with optimized images)
         fields["url"] = fields["url"].split("%3F").first
-        product.photos << Photo.create(fields) unless Photo.first(:url => fields["url"])
-      elsif object_name == "purchase_point"
-        unless product.purchase_points.first(fields)    
+        unless product_photos.has_key?(fields["url"])
+          product.photos << Photo.create(fields)
+          product_photos[fields["url"]] = true
+        end
+     elsif object_name == "purchase_point"
+        unless product_purchase_points.has_key?(fields["source"])
           product.purchase_points << PurchasePoint.create(fields)
+          product_purchase_points[fields["source"]] = true
         end
       else
         puts "Unknown: #{object_name} #{fields.to_json}"
       end
     end
-    if Product.first(:name => product.name)
+    
+    # Check if duplicates... if so destroy
+    if Product.first(:name => product.name) || product.name.nil?
+      product.photos.destroy!
+      product.purchase_points.destroy!
       product.destroy
-    else
+    else 
+      puts "Saving product #{product.name}"
       product.save
     end
-  end  
+  end
 end
 
 
