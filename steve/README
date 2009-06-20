@@ -1,0 +1,21 @@
+LIBRARIES THAT NEED TO BE INSTALLED
+
+- python2.6
+- twisted-8.2.0
+- zope-interfaces
+- txJSON-RPC - YOU NEED TO EDIT THIS - the netstring.jsonrpc file
+  has some needless imports from twisted.web2 that fail
+- simplejson
+- setuptools
+- BeautifulSoup
+
+
+
+Essentially there are two components to this backend:
+
+The crawler (aka grawler)
+The question and answer service (aka qa)
+
+so the qa service (which we're writing today) needs to be the following:
+
+an 
