@@ -20,8 +20,7 @@ def PrintError(error):
 def main(argv):
   print "Making remote call..."
   proxy = Proxy('http://127.0.0.1:%d/RPC2/' % FLAGS.port)
-  proxy.callRemote('NingsAwesomeMethod', 3, 8).addCallbacks(PrintValue, PrintError)
-  # proxy.callRemote('GetNewQuestion', 0).addCallbacks(PrintValue, PrintError)
+  proxy.callRemote('GetNewQuestion', 0).addCallbacks(PrintValue, PrintError)
   print "OK..."
   reactor.run()
 
