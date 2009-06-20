@@ -1,6 +1,6 @@
 """The actual QA server.
 
-Exposes the QuestionAnswer service via JSON-RPC on /RPC2/
+Exposes the QuestionAnswer service via XML-RPC on /RPC2/
 Exports the following methods:
 
   - GetNewQuestion(user_id)
@@ -14,26 +14,28 @@ for more details.
 from cobra.steve.util.prelude import *
 from cobra.steve.qa import handler, datastore
 
-from twisted.web import server, resource
+from twisted.web import server, resource, xmlrpc
 from twisted.internet import reactor, defer
 
-from txjsonrpc.web import jsonrpc
+# from txjsonrpc.web import jsonrpc
 
 
 flags.DefineInteger('port', 1337, 'The port to run the service on.')
 
 
-class QuestionHandlerResource(jsonrpc.JSONRPC):
+class QuestionHandlerResource(xmlrpc.XMLRPC):
   """The Twisted Resource that acts as a wrapper around the basic
   QuestionHandler object that we're going to publish."""
+  allowNone = True
+  timeout = 5
   addSlash = True
   isLeaf = True
 
   def __init__(self, question_handler, *args, **kwargs):
-    jsonrpc.JSONRPC.__init__(self, *args, **kwargs)
+    xmlrpc.XMLRPC.__init__(self, *args, **kwargs)
     self.question_handler = question_handler
 
-  def jsonrpc_GetNewQuestion(self, user_id):
+  def xmlrpc_GetNewQuestion(self, user_id):
     """Requests that a new question be generated for the given user.
     Returns a QuestionInstance.
 
@@ -41,7 +43,7 @@ class QuestionHandlerResource(jsonrpc.JSONRPC):
     """
     return self.question_handler.GetNewQuestion(user_id)
 
-  def jsonrpc_SetQuestionResponse(self, question_id, choice):
+  def xmlrpc_SetQuestionResponse(self, question_id, choice):
     """Notify the service about a response the user made.  Return True
     on success, False otherwise.
 
@@ -50,7 +52,7 @@ class QuestionHandlerResource(jsonrpc.JSONRPC):
     """
     return self.question_handler.SetQuestionResponse(question_id, choice)
 
-  def jsonrpc_AddQuestionEvents(self, question_id, events):
+  def xmlrpc_AddQuestionEvents(self, question_id, events):
     """Notify the service about events that fired when answering a
     Question.  Returns True on success, False otherwise.
 
