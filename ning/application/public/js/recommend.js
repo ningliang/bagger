@@ -27,9 +27,7 @@ $(function() {
 			qs.answer(
 				{id: id, choice: choice_id}, 
 				function(response) {
-					// TODO examine server side
-					// if good, generate new question
-					// if bad, display error, bind old node
+					response.success ? getQuestion() : modal.showMessage(response.message);
 				}, 
 				function(code, message) {
 					console.log(code + " " + message);

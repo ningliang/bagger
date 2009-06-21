@@ -1,6 +1,6 @@
 !!! Strict
 %html{ html_attrs("en_us") }
-  %title= @title
+  %title= "Bagfoo"
   %script{ :type => "text/javascript", :src => "/js/lib/jquery.js" }
   %script{ :type => "text/javascript", :src => "/js/lib/json.js" }
   %script{ :type => "text/javascript", :src => "/js/lib/jqmodal.js" }
@@ -8,5 +8,4 @@
   %script{ :type => "text/javascript", :src => "/js/lib/utility.js" }
   %script{ :type => "text/javascript", :src => "/js/lib/request_proxy.js" }
 %body
-  %h2= @title
   = yield

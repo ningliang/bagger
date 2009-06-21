@@ -14,4 +14,4 @@ DataMapper.setup(:default, {
   :username => 'root',
   :database => 'bagger_development'
 })
-# DataObjects::Mysql.logger = DataObjects::Logger.new(STDOUT, 0)
+DataObjects::Mysql.logger = DataObjects::Logger.new(STDOUT, 0)

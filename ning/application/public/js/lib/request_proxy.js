@@ -1,29 +1,19 @@
-BASE_URL = window.location.protocol + "//" + window.location.host;
-
-GET = 'GET';
-POST = 'POST';
-PUT = 'PUT';
-DELETE = 'DELETE';
-
-OK = 200;
-UNAUTHORIZED = 401;
-FORBIDDEN = 403;
-NOT_FOUND = 404;
-SERVER_ERROR = 500;
-
 function RequestProxy() {
 	function request(path, method, data, successHandler, errorHandler) {
-		data = data || {};
-		// data['_method'] = method;
-		// if (method == PUT || method == DELETE) method = POST;
+		data = data || {}
+		if (method == PUT || method == DELETE) {
+			data['_method'] = method;
+			method = POST;
+		}
+		
+		// Sinatra does not play nice with JSON PUT / DELETE - don't nest!
 		
 		// AJAX parameters
 		var options = {
 			url: BASE_URL + path,
-			contentType: 'application/json',
-			dataType: 'json',
+			dataType: "json",
 			type: method,
-			data: JSON.stringify(data),
+			data: data,
 			cache: false,
 			success: function(response) { if (successHandler) successHandler(response); },
 			error: function(request, status, error) { if (errorHandler) errorHandler(request.status, request.responseText); }
