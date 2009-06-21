@@ -1,0 +1,16 @@
+package qa;
+
+
+message UserHistory {
+  required int32 user_id = 1;
+  repeated int32 questions = 2;
+  repeated Question questions = 3;
+};
+
+
+message Question {
+  required int32 id = 1;
+  required string type = 2;
+  repeated string choices = 3;
+  optional int32 response = 2;
+};

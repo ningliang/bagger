@@ -3,12 +3,18 @@ LIBRARIES THAT NEED TO BE INSTALLED
 - python2.6
 - twisted-8.2.0
 - zope-interfaces
-- txJSON-RPC - YOU NEED TO EDIT THIS - the netstring.jsonrpc file
-  has some needless imports from twisted.web2 that fail
-- simplejson
-- setuptools
 - BeautifulSoup
+- python protocol buffers
 
+when using jsonrpc, you used to need these packages - however, now that
+we've switched to xmlrpc, you don't need txJSONRPC or its dependencies
+ - txJSON-RPC - YOU NEED TO EDIT THIS - the netstring.jsonrpc file
+   has some needless imports from twisted.web2 that fail
+ - simplejson
+ - setuptools
+
+
+you ALSO need to 
 
 
 Essentially there are two components to this backend:

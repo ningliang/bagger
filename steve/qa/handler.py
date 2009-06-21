@@ -2,31 +2,39 @@
 as well as accepting responses.
 """
 
+from cobra.steve.qa import investigator
+
 
 class QuestionHandler(object):
   def __init__(self, datastore):
     self.datastore = datastore
+    self.investigator = investigator.QuestionInvestigator()
 
   def GetNewQuestion(self, user_id):
-    # TODO(fedele): look up the user, and if they aren't there add them
-    # TODO(fedele): get all previously asked questions for this user, and
-    #               determine the appropriate next question to return.
-    # TODO(fedele): create a new QuestionInstance object in our database
-    return QuestionInstance(0, 0, ['foo', 'bar', 'baz'])
+    history = self.datastore.GetUserHistory(user_id)
+    new_question = history.questions.add()
+    self.investigator.FillNextQuestion(history, new_question)
+    new_question.id = MakeQuestionId(user_id, len(history.questions))
+    self.datastore.SetUserHistory(user_id, history)
+    return new_question
 
   def SetQuestionResponse(self, question_id, response):
-    # TODO(fedele): find the question_id in our database
-    # TODO(fedele): update it with the given response
+    user_id, index = ExtractUserIdAndIndex(question_id)
+    history = self.datastore.GetUserHistory(user_id)
+    history.questions[index].response = response
+    self.datastore.SetUserHistory(user_id, history)
     return True
 
   def AddQuestionEvents(self, question_id, events):
-    # TODO(fedele): find the question_id in our database
-    # TODO(fedele): update it with the given events
+    user_id, index = ExtractUserIdAndIndex(question_id)
+    history = self.datastore.GetUserHistory(user_id)
+    question = history.questions[index]
+    for event in events:
+      FillEventProto(question.events.add(), event)
+    self.datastore.SetUserHistory(user_id, history)
     return True
 
 
-class QuestionInstance(object):
-  def __init__(self, question_id, question_type, choices):
-    self.question_id = question_id
-    self.question_type = question_type
-    self.choices = choices
+
+def FillEventProto(event_proto, event):
+  pass
