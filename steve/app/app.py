@@ -6,13 +6,16 @@
 # from cobra.steve.util.prelude import *
 
 
-
-def run():
+def InitializeAndRun(mainfunc):
   from cobra.steve.app import flags
-  import __main__
   flags.DoParse()
   argv = []
   try:
-    __main__.main(argv)
+    mainfunc(argv)
   except KeyboardInterrupt:
     print
+
+
+def run():
+  import __main__
+  InitializeAndRun(__main__.main)
