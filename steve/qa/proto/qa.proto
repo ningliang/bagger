@@ -11,6 +11,14 @@ message Question {
   optional string type = 2;
   repeated string choices = 3;
   optional int32 response = 4;
+  repeated Event event = 5;
+};
+
+
+message Event {
+  optional string type = 1;
+  optional string timestamp = 2;
+  repeated string metadata = 3;
 };
 
 

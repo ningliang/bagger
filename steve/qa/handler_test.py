@@ -26,9 +26,7 @@ class TestHandler(unittest.TestCase):
     self.assertFalse(history.questions[1].HasField('response'))    
     history = self.datastore.GetUserHistory(1)
     self.assertEqual(1, history.questions[0].response) 
-    
-  def testRaisesKeyErrors(self):
-    pass
+
 
     
 class TestEncoding(unittest.TestCase):
