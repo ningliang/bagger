@@ -1,0 +1,46 @@
+message StockJoin {
+  repeated DayInfo days = 1;
+  optional FinancialStatements financial_statements = 2;
+};
+
+message DayInfo {
+  required string date = 1;
+  optional float price = 2;
+  optional int32 volume = 3;
+  optional float open = 4;
+  optional float close = 5;
+  optional float high = 6;
+  optional float close = 7;
+};
+
+message FinancialStatements {
+  message IncomeStatement {
+    optional float total_revenue = 1;
+    optional float gross_profit = 2;
+    optional float operating_income = 3;
+    optional float net_income = 4;
+    optional float diluted_weighted_average_shares = 5;
+    optional float diluted_normalized_eps = 6;
+  };
+
+  message BalanceSheet {
+    optional float total_current_assets = 1;
+    optional float total_assets = 2;
+    optional float total_current_liabilities = 3;
+    optional float total_liabilities = 4;
+    optional float total_equity = 5;
+    optional float total_common_shares_outstanding = 6;
+  };
+
+  message CashFlow {
+    optional float net_income = 1;
+    optional float cash_from_operating = 2;
+    optional float cash_from_investing = 3;
+    optional float cash_from_financing = 4;
+    optional float net_change_in_cash = 5;
+  };
+
+  optional group IncomeStatement;
+  optional group BalanceSheet;
+  optional group CashFlow;
+};
