@@ -2,6 +2,8 @@
 as well as accepting responses.
 """
 
+import struct
+
 from cobra.steve.qa import investigator
 
 
@@ -11,11 +13,11 @@ class QuestionHandler(object):
     self.investigator = investigator.QuestionInvestigator()
 
   def GetNewQuestion(self, user_id):
-    history = self.datastore.GetUserHistory(user_id)
+    history = self.datastore.GetOrCreateUserHistory(user_id)
     new_question = history.questions.add()
     self.investigator.FillNextQuestion(history, new_question)
-    new_question.id = MakeQuestionId(user_id, len(history.questions))
     self.datastore.SetUserHistory(user_id, history)
+    new_question.id = EncodeUserIdAndIndex(user_id, len(history.question))
     return new_question
 
   def SetQuestionResponse(self, question_id, response):
@@ -35,6 +37,20 @@ class QuestionHandler(object):
     return True
 
 
+def ExtractUserIdAndIndex(question_id):
+  """The question_id is actually encoded as follows:
+    upper 16 bits: user_id
+    lower 16 bits: question index
+  Note that if we ever need to change this, well, good...  
+  """
+  return struct.unpack("%H%H", struct.pack("%I", question_id))
+  
+
+def EncodeUserIdAndIndex(user_id, n):
+  """The inverse of ExtractUserIdAndIndex."""
+	return struct.unpack("%I", struct.pack("%H%H", user_id, n))
+  
+  
 
 def FillEventProto(event_proto, event):
-  pass
+  raise NotImplementedError

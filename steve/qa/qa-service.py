@@ -17,8 +17,6 @@ from cobra.steve.qa import handler, datastore
 from twisted.web import server, resource, xmlrpc
 from twisted.internet import reactor, defer
 
-# from txjsonrpc.web import jsonrpc
-
 
 flags.DefineInteger('port', 1337, 'The port to run the service on.')
 

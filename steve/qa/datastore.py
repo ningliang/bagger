@@ -8,7 +8,9 @@ well as includes several interface implementations:
 See the code and comments for more information.
 """
 
-from cobra.steve.qa.proto import qa_pb
+import sqlite3
+
+from cobra.steve.qa.proto import qa_pb2
 
 
 class DataStoreInterface(object):
@@ -17,26 +19,58 @@ class DataStoreInterface(object):
 
   def SetUserHistory(self, user_id, history):
     raise NotImplementedError
+    
+  def GetOrCreateUserHistory(self, user_id):
+    try:
+      return self.GetUserHistory(user_id)
+    except KeyError:
+      history = qa_pb2.UserHistory()
+      histor.user_id = user_id
+      self.SetUserHistory(user_id, history)
+      return history
 
 
 class InMemoryDataStore(DataStoreInterface):
   def __init__(self):
-    self.questions = {}
-    self.histories = {}
-    self.cur_question_id = 0
+    self.histories = {}    
 
   def GetUserHistory(self, user_id):
-    try:
-      return self.histories[user_id]
-    except KeyError:
-      return self.histories.setdefault(user_id, qa_pb.UserHistory())
-
+    return self.histories[user_id]
+    
   def SetUserHistory(self, user_id, history):
     self.histories[user_id] = history
 
 
 class LocalDataStore(DataStoreInterface):
-  pass
+  def __init__(self, location=":memory:"):
+    self.connection = sqlite3.connect(location)
+    c = self.connection.cursor()
+    c.execute("""create table if not exists userhistories (userid, historyproto blob, primary key (userid))""")
+    self.connection.commit()
+    
+  def GetUserHistory(self, user_id):
+    c = self.connection.cursor()
+    c.execute("select * from userhistories where userid=?", (user_id,))    
+    try:      
+      _, proto_bytes = c.fetchone()
+    except TypeError:
+      raise KeyError(user_id)
+    user_history = qa_pb2.UserHistory()    
+    user_history.ParseFromString(proto_bytes)
+    return user_history
+    
+  def SetUserHistory(self, user_id, history):
+    c = self.connection.cursor()
+    toinsert = (buffer(history.SerializeToString()), user_id)    
+    c.execute("update userhistories set historyproto=? where userid=?", toinsert)
+    if c.rowcount == 0:
+      c.execute("insert into userhistories (historyproto, userid) values (?, ?)", toinsert)
+    self.connection.commit()
+    
+      
+    
+      
+    
 
 
 class RemoteDataStore(DataStoreInterface):
