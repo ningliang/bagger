@@ -25,7 +25,7 @@ class DataStoreInterface(object):
       return self.GetUserHistory(user_id)
     except KeyError:
       history = qa_pb2.UserHistory()
-      histor.user_id = user_id
+      history.user_id = user_id
       self.SetUserHistory(user_id, history)
       return history
 

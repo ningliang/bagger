@@ -1,23 +1,26 @@
-"""The object that actually handles generating new questions for a user
-as well as accepting responses.
+"""The object that actually handles the Question RPCs from the
+qa-service.
 """
 
 import struct
 
-from cobra.steve.qa import investigator
+from cobra.steve.qa.investigator import QuestionInvestigator
 
 
 class QuestionHandler(object):
-  def __init__(self, datastore):
+  def __init__(self, datastore, investigator=None):
     self.datastore = datastore
-    self.investigator = investigator.QuestionInvestigator()
+    if investigator is None:
+      investigator = QuestionInvestigator()
+    self.investigator = investigator
 
   def GetNewQuestion(self, user_id):
     history = self.datastore.GetOrCreateUserHistory(user_id)
+    new_question_id = EncodeUserIdAndIndex(user_id, len(history.questions))
     new_question = history.questions.add()
     self.investigator.FillNextQuestion(history, new_question)
     self.datastore.SetUserHistory(user_id, history)
-    new_question.id = EncodeUserIdAndIndex(user_id, len(history.question))
+    new_question.id = new_question_id
     return new_question
 
   def SetQuestionResponse(self, question_id, response):
@@ -43,12 +46,12 @@ def ExtractUserIdAndIndex(question_id):
     lower 16 bits: question index
   Note that if we ever need to change this, well, good...  
   """
-  return struct.unpack("%H%H", struct.pack("%I", question_id))
+  return struct.unpack("HH", struct.pack("I", question_id))
   
 
 def EncodeUserIdAndIndex(user_id, n):
   """The inverse of ExtractUserIdAndIndex."""
-	return struct.unpack("%I", struct.pack("%H%H", user_id, n))
+  return struct.unpack("I", struct.pack("HH", user_id, n))[0]
   
   
 

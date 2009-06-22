@@ -26,6 +26,8 @@ class BasicDataStoreTest(object):
     self.ds.SetUserHistory(0, history)
     self.assertEqual(3, len(self.ds.GetUserHistory(2).questions))
     self.assertEqual(2, len(self.ds.GetUserHistory(0).questions))
+    self.assertEqual(0, len(self.ds.GetOrCreateUserHistory(4).questions))
+    self.assertEqual(3, len(self.ds.GetOrCreateUserHistory(2).questions))
     
   def testRaisesKeyErrors(self):
     self.assertRaises(KeyError, self.ds.GetUserHistory, 0)
