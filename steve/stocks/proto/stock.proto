@@ -1,9 +1,11 @@
 message StockJoin {
-  repeated DayInfo days = 1;
+  required string ticker_symbol = 1;
+  repeated DailyPriceInfo days = 1;
   optional FinancialStatements financial_statements = 2;
 };
 
-message DayInfo {
+
+message DailyPriceInfo {
   required string date = 1;
   optional float price = 2;
   optional int32 volume = 3;
@@ -12,6 +14,7 @@ message DayInfo {
   optional float high = 6;
   optional float close = 7;
 };
+
 
 message FinancialStatements {
   message IncomeStatement {
@@ -40,7 +43,22 @@ message FinancialStatements {
     optional float net_change_in_cash = 5;
   };
 
-  optional group IncomeStatement;
-  optional group BalanceSheet;
-  optional group CashFlow;
+  enum Quarter {
+    QUARTER1 = 1;
+    QUARTER2 = 2;
+    QUARTER3 = 3;
+    QUARTER4 = 4;
+  };
+  enum ReportType {
+    ANNUAL = 0;
+    QUARTERLY = 1;
+  };
+
+  required ReportType report_type = 1;
+  required int32 year = 2;
+  optional Quarter quarter = 3;
+
+  optional group IncomeStatement income_statement = 4;
+  optional group BalanceSheet balance_sheet = 5;
+  optional group CashFlow cash_flow = 6;
 };
