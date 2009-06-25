@@ -26,6 +26,7 @@ FLAGS = flags.FLAGS
 
 # These are for a more functional style.
 from itertools import *
+from functools import *
 from operator import itemgetter
 
 
