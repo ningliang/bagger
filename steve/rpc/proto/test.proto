@@ -1,0 +1,17 @@
+message TestRequest {
+  required int32 x = 1;
+  optional string y = 2;
+};
+
+
+message TestResponse {
+  optional string z = 1;
+  required string alpha = 2;
+  optional float x = 3;
+};
+
+
+service TestService {
+  rpc Foobar (TestRequest) returns (TestResponse);
+  rpc SpamMethod (TestRequest) returns (TestResponse);
+};

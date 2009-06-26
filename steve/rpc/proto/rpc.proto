@@ -1,0 +1,15 @@
+message Call {
+  required uint32 token = 1;
+  required string method = 2;
+  optional bytes request = 3;
+};
+
+message Result {
+  required uint32 token = 1;
+  optional bytes response = 2;
+};
+
+message Box {
+  optional bytes call = 1;
+  optional bytes result = 2;
+};
