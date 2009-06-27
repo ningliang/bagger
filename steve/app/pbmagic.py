@@ -69,10 +69,12 @@ def CompileProtocolBuffer(proto_file):
 
 def GetCobraBasedir(proto_filepath):
   "Given a path to a protofile, try to find the cobra root directory."
-  COBRA = '/cobra'
-  n = proto_filepath.find(COBRA) + len('cobra') + 1
+  COBRA = 'cobra'
+  n = proto_filepath.find(COBRA) + len(COBRA) + 1
   basedir = proto_filepath[:n]
-  assert os.path.exists(basedir) and os.path.isdir(basedir)
+  print proto_filepath
+  print basedir
+  assert os.path.exists(basedir) and os.path.isdir(basedir), "basedir '%s' (inferred from '%s') is not a valid directory" % (basedir, proto_filepath)
   return basedir
 
 
