@@ -16,7 +16,7 @@ class TestServiceHandler(test_pb2.TestService):
       response.z = "you got lucky"
     response.alpha = "alpha %s" % testRequest.x
     print "Foobar", testRequest
-    callback(response)
+    reactor.callLater(random.randint(1, 5), callback, response)
 
   def SpamMethod(self, controller, testRequest, callback):
     response = test_pb2.TestResponse()

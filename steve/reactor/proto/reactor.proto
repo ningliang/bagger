@@ -1,0 +1,54 @@
+message TaskInfoRequest {
+  enum Command {
+    LIST_ALL_TASKS = 1;   // Lists all tasks available without sending their code.
+    DESCRIBE_TASK = 2;    // Describes a specific task, including its code.
+  };
+  required Command command = 1;
+  optional string name = 2;
+  optional string prefix = 3;
+  optional bool return_bytecode = 4 [default=false];
+};
+
+message TaskInfoResponse {
+  message TaskInfo {
+    required string name = 1;
+    optional string code = 2;
+    optional bytes bytecodes = 3;
+  };
+  repeated TaskInfo info = 1;  
+};
+
+
+message TaskAssignmentRequest { 
+
+};
+
+message TaskAssignmentResponse {
+
+};
+
+message TaskCompleteRequest {
+
+};
+
+message TaskCompleteResponse {
+
+};
+
+message RegisterTaskRequest {
+
+};
+
+message RegisterTaskResponse {
+
+};
+
+service ReactorService {
+  // Consumer protocol - assigns tasks, gives info about them, and collects responses.
+  rpc GetTaskInfo (TaskInfoRequest) returns (TaskInfoResponse);
+  rpc GetTaskAssignment (TaskAssignmentRequest) returns (TaskAssignmentResponse);
+  rpc CompleteTask (TaskCompleteRequest) returns (TaskCompleteResponse);
+  
+  // Generator protocol - creates new tasks to be assigned.
+  rpc RegisterTask (RegisterTaskRequest) returns (RegisterTaskResponse);
+};

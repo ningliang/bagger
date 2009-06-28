@@ -2,7 +2,7 @@
 
 This module is intended to be imported like follows:
 
-from steve.util.prelude import *
+from cobra.steve.util.prelude import *
 
 Also imports many commonly used modules, which would
 especially be useful for quick scripts.
