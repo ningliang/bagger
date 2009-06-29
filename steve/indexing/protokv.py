@@ -18,7 +18,7 @@ class ProtoKeyValueFile(object):
         kv_proto = kv_pb2.KeyValuePair()
         kv_proto.key = key
         kv_proto.value = value.SerializeToString()
-        self.plf.Output(kv)
+        self.plf.Output(kv_proto)
 
     def MakeNewProto(self):
         return self.prototype()
