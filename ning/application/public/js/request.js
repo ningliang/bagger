@@ -1,27 +1,32 @@
+// Handles only JSON requests
 function RequestProxy() {
+	// For convenience - should never be accessed outside of this class
+  var	GET = 'GET';
+	var POST = 'POST';
+	var PUT = 'PUT';
+	var DELETE = 'DELETE';
+	
+	// General request method
 	function request(path, method, data, successHandler, errorHandler) {
-		data = data || {}
-		if (method == PUT || method == DELETE) {
-			data['_method'] = method;
-			method = POST;
-		}
+		// Pre process data
+		var requestData = {	_method: method, data: data || {}	};
+		if (method == PUT || method == DELETE) method = POST;
 		
-		// Sinatra does not play nice with JSON PUT / DELETE - don't nest!
-		
-		// AJAX parameters
+		// Set options
 		var options = {
 			url: BASE_URL + path,
 			dataType: "json",
-			type: method,
-			data: data,
+			data: requestData,
 			cache: false,
 			success: function(response) { if (successHandler) successHandler(response); },
-			error: function(request, status, error) { if (errorHandler) errorHandler(request.status, request.responseText); }
+			error: function(request, status, error) { if (errorHandler) errorHandler(request.status, request.responseText)}
 		}
 		
+		// Run the call
 		$.ajax(options);
 	}
 	
+	// Methods
 	this.get = function(path, successHandler, errorHandler) { request(path, GET, null, successHandler, errorHandler); }
 	this.post = function(path, data, successHandler, errorHandler) { request(path, POST, data, successHandler, errorHandler); }
 	this.put = function(path, data, successHandler, errorHandler) { request(path, PUT, data, successHandler, errorHandler); }

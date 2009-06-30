@@ -7,7 +7,6 @@ class Tag
   property :meta, Json, :lazy => false
   
   has n, :products, :through => Resource
-  has n, :tag_questions, :through => Resource
   
   def to_json
     { 

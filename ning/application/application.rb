@@ -29,6 +29,11 @@ helpers do
   end
 end
 
+# Special handling on JSON data
+before do
+  data = JSON.parse(params[:data]) unless params[:data].nil?
+end
+
 # Index
 get "/" do 
   haml :'dashboards/index'
@@ -52,26 +57,27 @@ end
 get "/questions/:id" do |id|
   question = QuestionService.get(id)
   raise ServerError unless question
-  puts question
   json_response(200, question)
 end
 
 # Generate a question (JSON)
 post "/questions" do
+  # TODO user id
+  puts "Generating question for user #{0}"
   question = QuestionService.generate(0)
   raise ServerError unless question
-  puts question
   json_response(200, question)
 end
 
 # Answer a question
 put "/questions/:id" do |id|
-  result = QuestionService.answer(id, 0)
-  puts result
+  puts "Answering question with id #{id} and answer #{data[:choice_id]}"
+  result = QuestionService.answer(id, data[:choice_id])
   json_response(200, result)
 end
 
 # Add events
-post "/questions/:id/events" do |id|
-  # TODO STUB
+post "/events" do 
+  puts "Adding events of the form #{data.to_json}"
+  result = QuestionService.addEvents(data)
 end

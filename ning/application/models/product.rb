@@ -2,15 +2,13 @@ class Product
   include DataMapper::Resource
   
   property :id, Serial
-  property :name, String, :lazy => false
+  property :name, String, :length => 1..500, :lazy => false
   property :description, String, :length => 1..2000, :lazy => false
   
   has n, :photos
   has n, :purchase_points
   has n, :reviews
   has n, :tags, :through => Resource
-
-  has n, :product_questions, :through => Resource
   
   def to_json
     {
