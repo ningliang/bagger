@@ -14,8 +14,11 @@ flags.DefineString("kvf", None, "Path to the key-value file to output")
 
 def main(argv):
   kvf = protokv.ProtoKeyValueFile(handbag_pb2.PurchasePoint, FLAGS.kvf, 'r')
-  for key, value in kvf:
-    print key, value
+  n = 0
+  for n, (key, value) in enumerate(kvf):
+    print n, key, value
+  print "printed %d bags" % n
+    
 
 
 if __name__ == '__main__':
