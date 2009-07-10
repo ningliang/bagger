@@ -1,5 +1,5 @@
 function InputQuestion(question, controller) {
-	console.log("initialize question");
+	//console.log("initialize question");
 	var node = $("<div/>").addClass("question");
 	var modal = new Modal();
 	
@@ -14,7 +14,7 @@ function InputQuestion(question, controller) {
 	}
 	
 	function build(hash) {
-		console.log(hash);
+		//console.log(hash);
 		node.empty().append($("<div/>").addClass("statement").html(hash.statement));
 		node.append($("<form/>")
 			.append($("<input type='text'/>"))

@@ -1,5 +1,5 @@
 function MultiQuestion(question, controller) {
-	console.log("initialize question");
+	//console.log("initialize question");
 	var node = $("<div/>").addClass("question");
 	var modal = new Modal();
 	
@@ -16,7 +16,7 @@ function MultiQuestion(question, controller) {
 	
 	// Construct the node - behavior on the choice nodes
 	function build(hash) {
-		console.log(hash);
+		//console.log(hash);
 		node.empty().append($("<div/>").addClass("statement").html(hash.statement));
 		for (var i = 0; i < hash.choices.length; i++) {
 			var choice = new Choice(i, hash.choices[i], self);

@@ -1,5 +1,5 @@
 function RecommendationDashboard(node) {
-	console.log("initializing");
+	//console.log("initializing");
 	var node = $(node);
 	var modal = new Modal();
 	var self = this;	
@@ -11,7 +11,7 @@ function RecommendationDashboard(node) {
 	this.getNode = function() { return node; }
 	
 	this.newQuestion = function() {
-		console.log("new question");
+		//console.log("new question");
 		questionService.create(
 			function(response) {
 				var question = null;
@@ -28,8 +28,8 @@ function RecommendationDashboard(node) {
 	}
 	
 	this.answerQuestion = function(id, answer) {
-		console.log("answering");
-		console.log(id + " " + answer);
+		//console.log("answering");
+		//console.log(id + " " + answer);
 		questionService.update({id: id, answer: answer},
 			function(response) { self.newQuestion(); },
 			errorHandler
@@ -37,7 +37,7 @@ function RecommendationDashboard(node) {
 	}
 	
 	this.selectQuestion = function(index) {
-		console.log("getting question " + index)
+		//console.log("getting question " + index)
 		if (index < questions.length && index > 0) {
 			current = index;
 			node.empty().append(questions[current].getNode());
