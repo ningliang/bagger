@@ -1,3 +1,3 @@
 *.pyc
 *_pb2.py
-*.DS_STORE
+.DS_Store
