@@ -1,0 +1,32 @@
+message Image {
+  enum Type {
+    THUMBNAIL = 1;
+    FULLSIZED = 2;
+  };
+  required string src = 1;
+  optional Type type = 2;
+  optional string alt_text = 3;
+  optional string title = 4;
+  optional bytes content = 5;
+};
+
+message Review {
+
+};
+
+
+message PurchasePoint {
+  optional string name = 1;
+  repeated string src_urls = 2;
+  optional string price = 3;
+  repeated Image images = 4;
+  repeated Review reviews = 5;
+  repeated string breadcrumbs = 6;
+  optional string summary = 7;
+  repeated string descriptions = 8;
+  optional string dimension = 9;
+  optional string manufacturer = 10;
+  optional string webid = 11;
+  repeated string colors = 12;
+  optional string bag_type = 13;
+};

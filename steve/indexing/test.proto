@@ -1,0 +1,5 @@
+message MyTestProto {
+  required string name = 1;
+  optional int32 age = 2;
+  optional string birthday = 3;
+};
