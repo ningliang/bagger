@@ -1,17 +1,10 @@
 // HTTP related constants
-BASE_URL = window.location.protocol + "//" + window.location.host;
-OK = 200;
-UNAUTHORIZED = 401;
-FORBIDDEN = 403;
-NOT_FOUND = 404;
-SERVER_ERROR = 500;
-
-// Event related constants
-SELECTION = 0;
-CONFIRMATION = 1;
-PHOTO_VIEW = 2;
-PHOTO_CLOSE = 3;
-
+var BASE_URL = window.location.protocol + "//" + window.location.host;
+var OK = 200;
+var UNAUTHORIZED = 401;
+var FORBIDDEN = 403;
+var NOT_FOUND = 404;
+var SERVER_ERROR = 500;
 
 // Make anything a singleton
 function makeSingleton(klass) {
@@ -34,8 +27,8 @@ Array.prototype.remove = function(object) {
 
 // Convenience function for a new event
 function newEvent(type, data) {
-	return $.extend(data, 
+	return $.extend(data, {
 		type: type,
-		timestamp: new Date().getTime()
-	);
+		timestamp: new Date().getTime()	
+	});
 }

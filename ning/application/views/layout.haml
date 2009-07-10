@@ -1,11 +1,17 @@
 !!! Strict
 %html{ html_attrs("en_us") }
-  %title= "Bagfoo"
-  - ["jquery.js", "json.js", "jqmodal.js"].each do |lib_js|
-    %script{ :type => "text/javascript", :src => "/js/lib/#{lib_js}"}
-  - ["common.js", "request.js", "service.js", "modal.js", "recommendation.js", "question.js"].each do |app_js|
-    %script{ :type => "text/javscript", :src => "/js/#{app_js}"}
-  %link{ :href => "css/jqmodal.css", :type => "text/css", :rel => "stylesheet" }
-%body
-  = yield
-  #modal
+  %head
+    %title= "Bagfoo"
+    %script{ :type => "text/javascript", :src => "/js/lib/jquery.js" }
+    %script{ :type => "text/javascript", :src => "/js/lib/json.js"}
+    %script{ :type => "text/javascript", :src => "/js/lib/jqmodal.js" }
+    %script{ :type => "text/javascript", :src => "/js/lib/common.js" }
+    %script{ :type => "text/javascript", :src => "/js/lib/request.js" }
+    %script{ :type => "text/javascript", :src => "/js/lib/service.js" }
+    %script{ :type => "text/javascript", :src => "/js/widget/modal.js" }
+    %script{ :type => "text/javascript", :src => "/js/widget/recommendation.js" }
+    %script{ :type => "text/javascript", :src => "/js/widget/multi_question.js" }
+    %script{ :type => "text/javascript", :src => "/js/widget/input_question.js" }
+  %body
+    %h1= "Bagfoo"
+    = yield
