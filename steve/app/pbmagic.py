@@ -23,6 +23,8 @@ import sys
 import os
 import subprocess
 
+from cobra.steve.util import cobrastuff
+
 
 PYPB_SUFFIX = '_pb2'
 PROTO_SUFFIX = '.proto'
@@ -61,21 +63,22 @@ def CompileProtocolBuffer(proto_file):
   "Compile the protobuffer at the specified path."
   assert proto_file.endswith(PROTO_SUFFIX)
   python_file = proto_file[:-6] + PYPB_SUFFIX + ".py"
-  cobra_basedir = GetCobraBasedir(proto_file)
+  cobra_basedir = cobrastuff.ExtractCobraDir(proto_file)
   outdir = os.path.dirname(proto_file)
   cmd = "protoc -I=%s --python_out=%s %s" % (cobra_basedir, cobra_basedir, proto_file)
   subprocess.check_call(cmd.split())
 
 
-def GetCobraBasedir(proto_filepath):
-  "Given a path to a protofile, try to find the cobra root directory."
-  COBRA = 'cobra'
-  n = proto_filepath.find(COBRA) + len(COBRA) + 1
-  basedir = proto_filepath[:n]
-  print proto_filepath
-  print basedir
-  assert os.path.exists(basedir) and os.path.isdir(basedir), "basedir '%s' (inferred from '%s') is not a valid directory" % (basedir, proto_filepath)
-  return basedir
+if False:
+  def GetCobraBasedir(proto_filepath):
+    "Given a path to a protofile, try to find the cobra root directory."
+    COBRA = 'cobra'
+    n = proto_filepath.find(COBRA) + len(COBRA) + 1
+    basedir = proto_filepath[:n]
+    print proto_filepath
+    print basedir
+    assert os.path.exists(basedir) and os.path.isdir(basedir), "basedir '%s' (inferred from '%s') is not a valid directory" % (basedir, proto_filepath)
+    return basedir
 
 
 sys.meta_path.append(ProtocolBufferMagicImportHook())

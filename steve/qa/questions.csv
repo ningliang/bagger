@@ -1,0 +1,148 @@
+# Any lines begining with a '#' as the first non-space character are ignored
+# Any lines containing only space characters are also ignored.
+
+# Built in responses - these 
+RESPONSE,  -1, OneBlankEntry
+RESPONSE,  -2, ThreeBlankEntries
+RESPONSE,  -3, FiveBlankEntries
+RESPONSE,  -4, OneBlankEntryIncreasing
+RESPONSE,  -5, ThreeBlankEntriesIncreasing
+RESPONSE,  -6, FiveBlankEntriesIncreasing
+RESPONSE,  -7, ColorWheel
+
+RESPOSNE, -10, TwoHandbagCompare
+RESPONSE, -11, TwoHandbagsOrNeither
+RESPONSE, -12, TwoHandbagsNeitherOrBoth
+
+RESPOSNE, -15, ThreeHandbagsBestWorst
+RESPOSNE, -16, ThreeHandbagsBest
+RESPOSNE, -17, ThreeHandbagsWorst
+
+RESPONSE, -20, FiveHandbagsBest
+RESPONSE, -21, FiveHandbagsBestWorst
+RESPONSE, -22, FiveHandbagsWorst
+
+RESPONSE,-100, MultipleChoice
+RESPONSE,-101, FreeFormResponse
+
+# Generic responses.
+RESPONSE,   0, YesNo,				 Yes, No
+RESPONSE,   1, YesNoMaybe, 	 		 Yes, No, Maybe
+RESPONSE,   2, YesNoMaybeNA, 		 Yes, No, Maybe, N/A
+RESPONSE,   3, TrueFalse,    	  	 True, False
+RESPONSE,   4, RoughlyHowOften, 	 Never, Rarely, Occaisionally, Frequently, Always
+RESPONSE,   5, HowManyTimes, 	 	 Never, 0-1 times, 2 times, 3-5 times, 5+ times
+RESPONSE,   6, EyeColorChoices,  	 Blue, Brown, Amber, Gray, Green, Hazel, No Eyes, Other
+RESPONSE,   7, HairColorChoices,     Black, Dark Brown, Brown, Auburn, Red, Blonde, Grey/White, No Hair, Other
+RESPONSE,   8, SexualOrientation,    Straight, Gay, Bisexual, Assexual, Other, N/A
+RESPONSE,   9, GenderCombos,    	 Female, Male, Both, Neither
+RESPONSE,  10, BraSizeChoices, 		 A, B, C, D, DD, DDD, Other, N/A
+RESPONSE,  11, LeftRightEither,  	 Left, Right, Either
+RESPONSE,  12, GenderCombos,    	 Female, Male
+RESPONSE,  13, MonthsOfYear,		 January, February, March, April, May, June, July, August, September, October, November, December
+RESPONSE,  14, DaysOfWeek,			 Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
+# TODO(fedele): are these the right breakdowns?  do we want more?
+RESPONSE,  15, IncomeLevels1,		 "Less than $9,999", "$10,000 - $14,999", "$15,000 - $24,999", "$25,000 - $34,999", "$35,000 - $50,000", "$50,000 - $74,999", "$75,000 - $99,999", "$100,000 - $149,999", "$150,000 - $199,999", "$200,000 and above."
+# TODO(fedele): get real job sector questions
+RESPONSE,  16, JobSector,			 Construction, Banking, Fishing
+RESPONSE,  17, EducationalLevel,	 High School, Some College, Graduated College, Post-Graduate
+RESPONSE,  18, ImportanceLevel,		 Mandatory, Very Important, Somewhat Important, Not Very Important, Irrelevent
+RESPONSE,  19, BloodType,			 A, B, AB, O
+RESPONSE,  20, LevelOfLike,			 Strongly Like, Like, Neutral, Dislike, Strongly Dislike, No Opinion
+RESPONSE,  21, HowMuchWouldYouSpend, "<$50", "$50-$100", "$100-$200", "$200-$500", "$500+"
+RESPONSE,  22, HowMuchMarkup, 		 "Would pay >100% markup", "Would pay 50-100% markup", "Would pay 25-50% markup", "Would pay <25% markup", "Brand name isn't important"
+# TODO(fedele): get real type of bag questions
+RESPONSE,  23, HandbagType,			 Clutch, Hobo, Giant, Beach
+
+# Favorites!
+QUESTION,   0, FiveBlankEntries, "What are some of your favorite movies?"
+QUESTION,   1, FiveBlankEntries, "What are some of your favorite books?"
+QUESTION,   2, FiveBlankEntries, "What are some of your favorite albums?"
+QUESTION,   3, FiveBlankEntries, "What are some of your favorite songs?"
+QUESTION,   4, FiveBlankEntries, "What are some of your favorite songs?"
+QUESTION,   5, FiveBlankEntries, "What are some of your favorite musical genres?"
+QUESTION,   6, FiveBlankEntries, "What are some of your favorite things to do?"
+QUESTION,   7, FiveBlankEntries, "What are some of your favorite things to outside?"
+QUESTION,   8, FiveBlankEntries, "What are some of your favorite places to go on vacation?"
+QUESTION,   9, FiveBlankEntries, "What are some of your favorite things to do on vacation?"
+QUESTION,  10, FiveBlankEntries, "What are some of your favorite foods?"
+QUESTION,  11, FiveBlankEntries, "What are some of your favorite drinks?"
+QUESTION,  12, FiveBlankEntries, "What are some of your favorite alcoholic drinks?"
+
+# Addictions and other fun things.
+QUESTION,  13, HowManyTimes,     "How often each month do you get drunk?"
+QUESTION,  14, HowManyTimes,     "How often each week do you get drunk?"
+QUESTION,  15, HowManyTimes,     "How often each month do you smoke cigarettes?"
+QUESTION,  16, HowManyTimes,     "How often each week do you smoke cigarettes?"
+QUESTION,  17, HowManyTimes,     "How often each week do you smoke cigarettes?"
+QUESTION,  18, YesNo,			 "Do you smoke?"
+QUESTION,  19, YesNo,			 "Do you smoke marijuana?"
+
+# Handedness questions.
+QUESTION,  20, LeftRightEither,  "Which hand do you use for writing?"
+QUESTION,  21, LeftRightEither,  "Which hand do you use for drawing?"
+QUESTION,  22, LeftRightEither,  "Which hand do you use for scissors?"
+QUESTION,  23, LeftRightEither,  "Which hand do you use to unscrew the lid of a jar?"
+QUESTION,  24, LeftRightEither,  "Which hand do you use to throw a ball?"
+QUESTION,  25, LeftRightEither,  "Which leg do you kick with?"
+QUESTION,  26, LeftRightEither,  "Which eye is dominant?  <TODO: include instructions>"
+QUESTION,  27, LeftRightEither,  "Was your father left or right handed?"
+QUESTION,  28, LeftRightEither,  "Was your mother left or right handed?"
+
+# Physical characteristics.
+QUESTION,  30, OneBlankEntry,    "How tall are you?"
+QUESTION,  31, OneBlankEntry,    "How tall are you in inches?"
+QUESTION,  32, OneBlankEntry,    "How tall are you in centimeters?"
+QUESTION,  33, OneBlankEntry,    "How much do you weigh?"
+QUESTION,  34, OneBlankEntry,    "What color are your eyes?"
+QUESTION,  35, EyeColorChoices,  "What color are your eyes?"
+QUESTION,  36, HairColorChoices, "What color is your hair?"
+QUESTION,  37, HairColorChoices, "What color is your hair naturally?"
+QUESTION,  38, YesNo,			 "Do you wear glasses or contacts?"
+QUESTION,  39, YesNo,			 "Do you wear contacts?"
+QUESTION,  40, YesNo,			 "Do you dye your hair?"
+QUESTION,  41, OneBlankEntry,    "What is your bust size?"
+QUESTION,  42, OneBlankEntry,    "What is your hip size?"
+QUESTION,  43, OneBlankEntry,    "What is your waist size?"
+QUESTION,  44, BraSizeChoices,   "What is your bra size?"
+QUESTION,  45, OneBlankEntry,    "What size shoes do you wear?"
+QUESTION,  46, OneBlankEntry,    "What size rings do you wear?"
+QUESTION,  47, FreeFormResponse, "Describe yourself physically in as few or as many words as you'd like."
+
+# Gender and sexuality questions.
+QUESTION,  48, Gender,	 		 "What physical gender were you born as?"
+QUESTION,  49, GenderCombos,	 "What gender are you?"
+QUESTION,  50, SexualOrientation,"What would you say your sexual orientation is?"
+QUESTION,  51, GenderCombos,     "Which gender are you MOST attracted to?"
+QUESTION,  52, GenderCombos,     "Which gender are you LEAST attracted to?"
+QUESTION,  53, GenderCombos,     "Which gender are you attracted to?"
+QUESTION,  54, YesNo,			 "Do you use birth control?"
+QUESTION,  55, YesNo,			 "Do you have any STDs?"
+QUESTION,  56, YesNo,			 "Have you ever had a one night stand?"
+
+# Basic demographic questions
+QUESTION,  57, OneBlankEntry,	 "How old are you?"
+QUESTION,  58, MonthsOfYear,	 "In which month were you born?"
+QUESTION,  59, OneBlankEntry,	 "In which country were you born?"
+QUESTION,  60, OneBlankEntry,	 "What is your nationality?"
+QUESTION,  61, OneBlankEntry,	 "What is your current zip code?"
+QUESTION,  61, OneBlankEntry,	 "What is your current zip code?"
+QUESTION,  62, IncomeRanges,	 "What is your annual income?"
+QUESTION,  63, OneBlankEntry,	 "What do you do for a living?"
+QUESTION,  64, EducationLevel,	 "What is your current level of education?"
+QUESTION,  65, OneBlankEntry,	 "What was your major in college, or if you have not gone, what would you like to major in?"
+
+# Questions about those around you.
+QUESTION,  66, OneBlankEntry,    "How many siblings do you have?"
+QUESTION,  67, OneBlankEntry,    "How many older siblings do you have?"
+QUESTION,  68, OneBlankEntry,    "How many younger siblings do you have?"
+QUESTION,  69, HairColorChoices, "What color hair does your mother have?"
+QUESTION,  70, HairColorChoices, "What color hair does your father have?"
+QUESTION,  71, EyeColorChoices,  "What color eyes does your mother have?"
+QUESTION,  72, EyeColorChoices,  "What color eyes does your father have?"
+
+
+# TODO(fedele): big 5 personality questions
+# TODO(fedele): some general intelligence questions
+# TODO(fedele): some basic questions from OkCupid
+# TODO(fedele): basic mendelian traits in humans
