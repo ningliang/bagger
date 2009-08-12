@@ -21,7 +21,7 @@ class QuestionHandler(object):
     self.investigator.FillNextQuestion(history, new_question)
     self.datastore.SetUserHistory(user_id, history)
     new_question.id = new_question_id
-    return self.investigator.RenderQuestionProtoToXML(new_question)
+    return self.investigator.RenderQuestionProtoForXMLRPC(new_question)
 
   def SetQuestionResponse(self, question_id, response):
     user_id, index = ExtractUserIdAndIndex(question_id)

@@ -28,9 +28,15 @@ class WordNet(object):
     word = word.lower()
     poses = set()
     poses += self.pos_mapping.get(word, set())
+    root_form = self.DeConjugate(word)
+    if root_form is not None:
+      poses += self.pos_mapping.get(root_form)
+    return poses
+
+  def DeConjugate(self, word):
     if word in self.irregular_verbs:
-      root = self.irregular_verbs[word]
-      poses += self.pos_mapping.get(root)
+      return self.irregular_verbs[word]
+    
 
   def Load(self):
     dict_dir = os.path.join(self.wordnet_root, './dict/')
