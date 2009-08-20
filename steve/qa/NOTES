@@ -1,0 +1,26 @@
+ok, so what needs to be done?
+
+1) you need to read in questions
+   - questions.csv: question_id, response_type, text, arg1, ... , argN
+   - responses.csv: response_id, response_type, choice1, ... , choiceN
+   - or just make them all one file
+
+2) you then need to change Question to have response be a string
+
+3) then alter the Question rendering code in the qa-handler
+   some function that, given a protobuffer, would return an
+   appropriate object to render into xml...
+
+4) now, you will also need to load the handbag repository into memory
+   and read from it so that you can know what images to return
+
+
+
+ok, so...
+
+each Question can produce QuestionInstances
+	 it mostly just delegates to its ResponseSet that is in charge 
+	 you could imagine that a Question make take extra parameters that determine how its choices are determined?
+	 finally, you can imagine that it might also 
+
+
