@@ -1,3 +1,7 @@
 *.pyc
 *_pb2.py
 .DS_Store
+build/*
+a.out
+*.pb.h
+*.pb.cc
