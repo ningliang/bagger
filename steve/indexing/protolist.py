@@ -19,9 +19,12 @@ class ProtoListFile(object):
 
     def Output(self, value):
         serialized = value.SerializeToString()
-        MAX_LEN = 2 ** 16
-        assert len(serialized) < MAX_LEN
-        self.f.write(struct.pack("H", len(serialized)))
+        self.OutputRaw(serialized)
+
+    def OutputRaw(self, serialized):
+        # MAX_LEN = 2 ** 16
+        # assert len(serialized) < MAX_LEN
+        self.f.write(struct.pack("I", len(serialized)))
         self.f.write(serialized)
         self.f.flush()
 
@@ -31,10 +34,10 @@ class ProtoListFile(object):
     def __iter__(self):
         self.f.seek(0)
         while True:
-            size_buffer = self.f.read(2)
+            size_buffer = self.f.read(4)
             if not size_buffer:
                 break
-            size = struct.unpack("H", size_buffer)[0]
+            size = struct.unpack("I", size_buffer)[0]
             proto = self.MakeNewProto()
             serialized = self.f.read(size)
             proto.ParseFromString(serialized)
@@ -62,8 +65,3 @@ def main(argv):
 
 if __name__ == '__main__':
     app.run()
-
-            
-            
-
-    
