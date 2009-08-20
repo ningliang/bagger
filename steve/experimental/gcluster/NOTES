@@ -1,0 +1,36 @@
+Alright, time to write your opus.
+
+We divide things into Boxes - things that take inputs and produce outputs - and Pipes, or things
+that take streams as input and produce the same stream as output.  
+
+**Are Boxes essentially Pipes?  Yes, although there is a difference: Boxes deal with computation
+on elements of a stream, while Pipes simply move the elements around.***
+
+Now, in the construction of a Flow, Boxes are the nodes and Pipes are the edges.  Thus, abstractly,
+a Pipe...
+  from the point of view of the writer, is completely unimportant
+  from the point of view of the runtime, is the most important part
+
+
+Pipes implement:
+  sharding (e.g. of a file)
+  hash-based sharding
+  moving data from one CPU to another
+  
+
+
+
+
+
+
+
+class FlowElement(object):
+  pass
+
+
+class Box(FlowElement):
+  pass
+
+
+class Pipe(FlowElement):
+  pass

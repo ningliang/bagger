@@ -1,0 +1,34 @@
+package worddata;
+
+
+message TerminalCount {
+  optional string terminal = 1;
+  optional float weight = 2;
+};
+
+
+message SampledTerminalDistribution {
+  optional float observed_weight = 1;
+  optional float total_weight = 2;
+  optional float observed_count = 3;  // This should be the same as terminals_size() below.
+  optional float total_count = 4;
+  repeated TerminalCount terminals = 5;
+};
+
+
+message CanonicalPositionDistribution {
+  optional float beg = 1;
+  optional float end = 2;
+  optional float mid = 3;
+  optional float solo = 4;
+};
+
+
+message WordData {
+  required string terminal = 1;
+  optional float weight = 2;
+  optional CanonicalPositionDistribution position_distribution = 3;
+  optional SampledTerminalDistribution terminals_before = 4;
+  optional SampledTerminalDistribution terminals_after = 5;
+  repeated TerminalCount capitalizations = 6;
+};
