@@ -3,9 +3,12 @@
 #include <algorithm>
 #include <ctime>
 
+#include <google/protobuf/repeated_field.h>
+
 #include "proto/worddata.pb.h"
 
 using namespace std;
+using namespace google::protobuf;
 using namespace worddata;
 
 // Parse a line from a CSV file.
@@ -199,8 +202,21 @@ bool ProcessFile(const string& path, HandleLineCallback handle_line_callback, Le
   return true;
 }
 
+bool WordDataCmp(const WordData& a, const WordData& b) {
+  return a.terminal() > b.terminal();
+}
+
+bool TerminalCountCmp(const TerminalCount& a, const TerminalCount& b) {
+  return a.terminal() > b.terminal();
+}
+
+void SortTerminalDistribution(SampledTerminalDistribution* distribution) {
+  RepeatedPtrField<TerminalCount>* terminals = distribution->mutable_terminals();
+  sort(terminals->begin(), terminals->end(), TerminalCountCmp);
+}
+
 bool Foobar() {
-  string output_path = "/usr/local/google/home/fedele/aobitu/data/worddata.plf";
+  string output_path = "/usr/local/google/home/fedele/aobitu/data/worddata.2.plf";
 
   ofstream file(output_path.c_str(), ios::out | ios::binary);
   if (file.fail()) {
@@ -232,6 +248,8 @@ bool Foobar() {
 
   int n = 0;
   for (Lexicon::iterator it = lexicon.begin(); it != lexicon.end(); ++it, ++n) {
+    SortTerminalDistribution(it->second.mutable_terminals_before());
+    SortTerminalDistribution(it->second.mutable_terminals_after());
     string serialized_worddata;
     it->second.SerializeToString(&serialized_worddata);
     int record_size = serialized_worddata.length();
@@ -246,11 +264,6 @@ bool Foobar() {
   float time_taken = static_cast<float>(clock() - start_time) / CLOCKS_PER_SEC;
   cout << "done!  total time taken: " << time_taken << " seconds" << endl;
   return true;
-}
-
-
-bool WordDataCmp(const WordData& a, const WordData& b) {
-  return a.terminal() > b.terminal();
 }
 
 int main(int argc, char* argv[]) {
