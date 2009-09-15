@@ -1,3 +1,22 @@
+ok, so no opus - just gcluster
+
+1) figure out what the command to re-compile proto
+
+> cd $COBRABASEDIR (cd /export/da3/home/fedele/my/cobra)
+> protoc --proto_path=`pwd` --cpp_out=`pwd` steve/experimental/gcluster/proto/worddata.proto
+
+
+2) what are the basic tools that you'll want/need?
+
+  - codex.py (to read lexicons)
+  - fstmerge.cc > csv2lexicon.cc (read csv files, translate them to a big lexicon)
+  - filter-lexicon.cc (take a lexicon, compute some stats on it, filter terminals, and compactify by using optional ints)
+  - cluster.cc (read a lexicon and run a basic clustering on it)
+
+otherwise, move everything else into a directory called "old"
+
+
+
 Alright, time to write your opus.
 
 We divide things into Boxes - things that take inputs and produce outputs - and Pipes, or things
