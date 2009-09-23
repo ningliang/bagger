@@ -45,9 +45,7 @@ def rate_specific(request, bag_id):
 
 def serve_image(request, bag_id):
   bag = Handbag.objects.get(id=bag_id)
-  print bag.original_image_path
-  fullpath = os.path.join(settings.IMAGES_DIRECTORY, bag.original_image_path)
-  print fullpath
+  fullpath = os.path.join(settings.IMAGES_DIRECTORY, bag.original_image_path)  
   mimetype, encoding = mimetypes.guess_type(fullpath)
   data = open(fullpath, 'rb').read()
   return HttpResponse(data, mimetype=mimetype)
