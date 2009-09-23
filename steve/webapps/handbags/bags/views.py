@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.db import connection, transaction
 from django.shortcuts import render_to_response
 from django import forms
+from django.conf import settings
 
 from handbags.bags.models import Handbag, Rating
 
@@ -44,8 +45,11 @@ def rate_specific(request, bag_id):
 
 def serve_image(request, bag_id):
   bag = Handbag.objects.get(id=bag_id)
-  mimetype, encoding = mimetypes.guess_type(bag.original_image_path)
-  data = open(bag.original_image_path, 'rb').read()
+  print bag.original_image_path
+  fullpath = os.path.join(settings.IMAGES_DIRECTORY, bag.original_image_path)
+  print fullpath
+  mimetype, encoding = mimetypes.guess_type(fullpath)
+  data = open(fullpath, 'rb').read()
   return HttpResponse(data, mimetype=mimetype)
   
 
