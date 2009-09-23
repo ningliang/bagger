@@ -10,19 +10,26 @@ from handbags.bags.models import Handbag, Rating
 import random
 import os.path
 import mimetypes
+from operator import itemgetter
+from itertools import *
 
 
 class RatingForm(forms.Form):
-  rating = forms.TypedChoiceField(choices=[('1 (worst)', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5 (best)', '5')], coerce=int)
-  reason = forms.CharField(required=False)
+  rating = forms.TypedChoiceField(choices=[('1', '1 (worst)'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5 (best)')], coerce=int)
+  reason = forms.CharField(label='Reason (optional)', required=False)
 
-    
-def rate_specific(request, bag_id):
+  
+def GetUserId(request):
   if not 'user_id' in request.session:
     user_id = "U%08d" % random.randint(0, 10 ** 8 - 1)
     request.session['user_id'] = user_id
   else:
     user_id = request.session['user_id']
+  return user_id
+
+    
+def rate_specific(request, bag_id):
+  user_id = GetUserId(request)
   bag = Handbag.objects.get(id=bag_id)
   if request.method == 'POST':
     form = RatingForm(request.POST)
@@ -43,7 +50,18 @@ def serve_image(request, bag_id):
   
 
 def rate_random(request):
+  user_id = GetUserId(request)
   c = connection.cursor()
-  c.execute('select id from bags_handbag;')
-  random_id = random.choice(c.fetchall())
-  return HttpResponseRedirect("/rate/%s/" % random_id)
+  already_rated = [r.handbag.id for r in Rating.objects.filter(user=user_id)]
+  if already_rated:
+    where_clause = ' where id not in (%s)' % ','.join(imap(str, already_rated))
+  else:
+    where_clause = ''
+  c.execute('select id from bags_handbag' + where_clause)
+  bag_ids = map(itemgetter(0), c.fetchall())
+  if bag_ids:
+    random_id = random.choice(bag_ids)
+    return HttpResponseRedirect("/rate/%s/" % random_id)
+  else:
+    return HttpResponse("wow, you're awesome - you've already rated them all!  come back later")
+   
