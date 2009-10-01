@@ -5,3 +5,4 @@ build/*
 a.out
 *.pb.h
 *.pb.cc
+*dropin.cache*

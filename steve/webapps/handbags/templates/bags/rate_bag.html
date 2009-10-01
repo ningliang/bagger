@@ -1,0 +1,26 @@
+<html>
+<head>
+<title>Rate-A-Bag!</title>
+</head>
+<body>
+
+<a href="{{ bag.link }}" target="_blank">
+<h3>{{ bag.name }}</h3>
+</a> 
+<img src="/img/{{ bag.id }}/" alt="if there's no bag, click the 'rate a different bag' link below">
+<br/>
+
+<form action="/rate/{{ bag.id }}/" method="POST">
+{{ form.as_p }}
+<input type="submit" value="Rate this bag!" />
+</form>
+
+<a href="/rate/random/">rate a different bag</a>
+
+<br>
+<br>
+
+<i><small>your user_id: {{ user_id }}</small></i>
+
+</body>
+</html>
