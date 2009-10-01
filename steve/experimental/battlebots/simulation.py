@@ -66,12 +66,12 @@ class ShapeFactory(object):
     """
     Return the complete list of shapes as a numpy array.
     Note that although
-    """    
+    """
     if self.point_array is not None:
       return self.point_array
     self.point_array = numpy.ones((len(self.point_list), 3))
     self.point_array[:,0:2] = self.point_list
-    self.point_array = self.point_array.transpose()    
+    self.point_array = self.point_array.transpose()
     return self.point_array
     
   def GetShapeCoords(self, shape):
@@ -80,91 +80,190 @@ class ShapeFactory(object):
     """   
     start, end = shape
     return self.PointArray()[start:end]
-    
-  
+
+
+def Square(scale):
+  """
+  Returns a list of coordinates representing a square centered
+  at (0, 0) with sides of length 2 * scale.
+  """
+  return [(-scale, -scale), (scale, -scale), (scale, scale), (-scale, scale), (-scale, -scale)]
+
 
 class DefaultShapeLoader(object):
   def __call__(self, shape_name):
     if shape_name == 'level':
-      # Right now our level is just a simple rectangle.
-      return [(-1, -1), (1, -1), (1, 1), (-1, 1), (-1, -1)]
+      return Square(0.9)
+    elif shape_name == 'world':
+      return Square(1.0)
     elif shape_name == 'robot':
-      # A robot is just a rectangle.  There are 10 robots to a side.
-      return [(-0.1, -0.1), (0.1, -0.1), (0.1, 0.1), (-0.1, 0.1), (-0.1, -0.1)]
-    
-    
+      return Square(0.05)
+
+def AffineTransform(position, angle):
+  c = math.cos(angle)
+  s = math.sin(angle)
+  x, y = position
+  xform = numpy.array([[ c, s, x],
+                       [-s, c, y],
+                       [ 0, 0, 1]])
+  return xform
+
+
+class PolygonDrawer(object):
+  def __init__(self, color=(0, 0, 0), width=0):
+    self.color = color
+    self.width = width
+
+  def __call__(self, screen, pts):
+    pygame.draw.polygon(screen, self.color, pts, self.width)
 
 
 class GameState(object):
   robot_speed = 1 / 1000.0
   robot_turn_speed = 2 * 3.14159 / 2.0 / 1000.0
-  
-  
-  def __init__(self, screen_shape):
-    self.shape_factory = ShapeFactory(DefaultShapeLoader())    
+
+  normal_level_color = (0, 255, 255)
+  collided_level_color = (255, 0, 0)
+
+  flip_every_ms = 1000
+
+  def __init__(self, screen_shape, screen_offset):
+    self.shape_factory = ShapeFactory(DefaultShapeLoader())
+    self.level_color = self.normal_level_color
     w, h = screen_shape
-    self.world_transform = numpy.array([[ 0.5 * w,       0.0, 0.5 * w],
-                                        [     0.0,  -0.5 * h, 0.5 * h],
-                                        [     0.0,       0.0,     1.0]]) 
-    self.level = self.shape_factory.LoadShape('level')    
-    self.robot = self.shape_factory.LoadShape('robot')
-    self.robot_position_transform = numpy.array([[ 1.0, 0, 0],
-                                                 [ 0, 1.0, 0],
-                                                 [ 0, 0, 1.0]])
-    
-    
-  def DrawWorld(self, screen):    
-    pts = self.shape_factory.PointArray()    
-    screen.fill((255,255,255))
-    def DrawShape(shape, color, xform=None):
-      n, m = shape
-      if xform is not None:
-        xform = numpy.dot(self.world_transform, xform)
-      else:
-        xform = self.world_transform
-      screen_pts = numpy.dot(xform, pts[:, n:m]).transpose()[:,:-1]      
-      pygame.draw.polygon(screen, color, screen_pts, 1)
-    DrawShape(self.level, (0,255,255))
-    DrawShape(self.robot, (0,0,0), xform=self.robot_position_transform)
-    
+    x, y = screen_offset
+    self.world_transform = numpy.array([[ 0.5 * w,       0.0,  0.5 * w + x],
+                                        [     0.0,  -0.5 * h,  0.5 * h + y],
+                                        [     0.0,       0.0,          1.0]])
+    self.objects = []
+    self._cached_object_pts = []
+    self.time_since_color_flip = 0
+    self.AddObject('world', width=1, color=(0, 0, 0))
+    self.AddObject('level', color=(0, 255, 255))
+    print "WORLD POINTS"
+    print self.WorldPoints(self.objects[-1])
+    print "SCREEN POINTS"
+    print self.ScreenPoints(self.objects[-1])
+    self.AddObject('robot')
+
+  def GetRobotXform(self):
+    "Return the robot position transform matrix"
+    return self.objects[2][1]
+
+  def SetLevelColor(self, new_color):
+    self.level_color = new_color
+    self.objects[1][2].color = new_color  # Object 1 is the level, and element 2 is the drawer.
+
+  def AddObject(self, shape_name, position=(0, 0), angle=0, **kwargs):
+    obj = self.shape_factory.LoadShape(shape_name)
+    xform = AffineTransform(position, angle)
+    drawer = PolygonDrawer(**kwargs)
+    self.objects.append((obj, xform, drawer))
+    return xform
+
+  def ScreenPoints(self, obj_tuple, pts=None):
+    pts = self.shape_factory.PointArray()
+    (n, m), xform, _ = obj_tuple
+    return numpy.dot(numpy.dot(self.world_transform, xform), pts[:, n:m]).transpose()[:, :-1]
+
+  def WorldPoints(self, obj_tuple, pts=None):
+    pts = self.shape_factory.PointArray()
+    (n, m), xform, _ = obj_tuple
+    return numpy.dot(xform, pts[:, n:m]).transpose()[:, :-1]
+
+  def DrawWorld(self, screen):
+    pts = self.shape_factory.PointArray()
+    screen.fill((255,255,255))   # The window background is white
+    for obj in self.objects:
+      screen_pts = self.ScreenPoints(obj)
+      obj[2](screen, screen_pts)
+
+  def FlipLevelColor(self):
+    if self.level_color == self.normal_level_color:
+      self.SetLevelColor(self.collided_level_color)
+    else:
+      self.SetLevelColor(self.normal_level_color)
+
   def UpdateWorld(self, tick_time):
+    self.time_since_color_flip += tick_time
+    if self.time_since_color_flip > self.flip_every_ms:
+      self.time_since_color_flip -= self.flip_every_ms
+
     keys_down = pygame.key.get_pressed()
-    
+    robot_xform = self.GetRobotXform()
+
+    old_robot_xform = numpy.copy(robot_xform)
+
     if keys_down[pygame.K_DOWN]:
       # Move us backwards - however, it needs to be
       # along our primary axis, e.g. our current one.
-      # That would be the first axis.      
-      self.robot_position_transform[:,2] -= (tick_time * self.robot_speed) * self.robot_position_transform[:,0]       
+      # That would be the first axis.
+      robot_xform[:,2] -= (tick_time * self.robot_speed) * robot_xform[:,0]
     if keys_down[pygame.K_UP]:
       # Move us forwards.
-      self.robot_position_transform[:,2] += (tick_time * self.robot_speed) * self.robot_position_transform[:,0]
-      
+      robot_xform[:,2] += (tick_time * self.robot_speed) * robot_xform[:,0]
+
     if keys_down[pygame.K_RIGHT]:
       # Turn us right.
       t = tick_time * self.robot_turn_speed
       rot = numpy.array([[ math.cos(t), math.sin(t)],
                          [-math.sin(t), math.cos(t)]])
-      foo = self.robot_position_transform[:,:-1]           
-      self.robot_position_transform[:,:-1] = numpy.dot(foo, rot)
+      foo = robot_xform[:,:-1]
+      robot_xform[:,:-1] = numpy.dot(foo, rot)
     if keys_down[pygame.K_LEFT]:
       # Turn us left.
       t = -tick_time * self.robot_turn_speed
       rot = numpy.array([[ math.cos(t), math.sin(t)],
                          [-math.sin(t), math.cos(t)]])
-      foo = self.robot_position_transform[:,:-1]      
-      self.robot_position_transform[:,:-1] = numpy.dot(foo, rot)
-      
+      foo = robot_xform[:,:-1]
+      robot_xform[:,:-1] = numpy.dot(foo, rot)
+
     if keys_down[pygame.K_SPACE]:
       # Fire!
       pass
-      
+
+    if self.DetectCollisions():
+      # self.SetLevelColor(self.collided_level_color)
+      robot_xform[:] = old_robot_xform
+      # TODO(fedele): figure out the exact _time_ the robot collided
+      # with the scenery.  To do this, we calculate the robot's position as:
+      # as [[  cos(t * vr), sin(t * vr), x + vx * t],
+      #     [ -sin(t * vr), cos(t * vr), y + vy * t],
+      #     [          0.0,        0.0,         1.0]]
+      # and we wish to determine the first such t that will cause intersection
+      # with the offending object, which 
+
+  def DetectCollisions(self):
+    shapes = []
+    for n, obj in enumerate(self.objects):
+      world_pts = self.WorldPoints(obj)
+      # Why does the LineString here not work?
+      shape = LineString([(x, y) for x, y in world_pts])
+      shapes.append(shape)
+    # We only need to check for collisions of the robot with the level.
+    return shapes[2].crosses(shapes[1])
+
+
 
 
 def main():
+  if False:
+    world_pts = numpy.array(Square(0.9))
+    print "WORLD POINTS"
+    print world_pts
+    print "AS LINESTRING"
+    shape = asLineString(world_pts)
+    print list(shape.coords)
+    return
+
+  
   pygame.init()
-  screen_shape = (300, 300)
-  state = GameState(screen_shape)
-  screen = pygame.display.set_mode(screen_shape)
+  window_shape = (800, 620)       # The total size of the game window
+  game_screen_shape = (600, 600)  # The size of the actual battlefield
+  game_screen_offset = (10, 10)
+  state = GameState(game_screen_shape, game_screen_offset)
+
+  screen = pygame.display.set_mode(window_shape)
 
   clock = pygame.time.Clock()
   done = False
