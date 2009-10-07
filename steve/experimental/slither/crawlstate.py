@@ -62,6 +62,7 @@ flags.DefineString("hostnames", None, "The root hostnames of the site to crawl, 
 flags.DefineInteger("num_workers", 10, "The number of worker threads to use.")
 flags.DefineInteger("max_failures", 3, "Maximum number of failures before aborting a url.")
 flags.DefineBoolean("use_cache", True, "Whether or not to use a local cache when fetching ")
+flags.DefineString("seed_urls", None, "Path to a file containing extra urls to use as seeds.")
 
 
 
@@ -179,7 +180,7 @@ class CrawlResult(object):
     self.url = url
     self.local_path = local_path
     self.ondomain_anchors = ondomain_anchors
-    self.offdomain_anchors = offdomain_anchors
+    self.offdomain_anchors = offdomain_anchors    
 
 
 class ErrorResult(object):
@@ -202,11 +203,61 @@ class RedirectResult(object):
     self.redirect_url_pair = redirect_url_pair
     
 
+class StatusCounter(object):
+  def __init__(self, initial_counts):
+    ZeroStatusDict = lambda : dict((k.lower(), v) for k, v in initial_counts.iteritems())
+    self._counts = ZeroStatusDict()
+    self._old_counts = ZeroStatusDict()
+    self.net_timeouts = 0
+    self.net_failures = 0
+    self.net_complete = 0
+    
+  def delta(self):
+    ret = dict((key, self._counts[key] - self._old_counts[key]) for key in self._counts)
+    self._old_counts.update(self._counts)
+    return ret
+    
+  def AddComplete(self, n=1):
+    self._counts['complete'] += n
+    self._counts['assigned']  -= n
+    self.net_complete += n
+    
+  def AddToCrawl(self, n=1):
+    self._counts['tocrawl'] += n
+    
+  def AddFailed(self, n=1):
+    self._counts['failed'] += n
+    self.net_failures += n
+    
+  def AddAborted(self, n=1):
+    self._counts['failed'] -= n
+    self._counts['aborted'] += n
+    
+  def AddAssigned(self, n=1):
+    self._counts['tocrawl'] -= n
+    self._counts['assigned'] += n
+    
+  def AddRedirect(self, n=1):
+    self._counts['assigned'] -= n
+    self._counts['redirect'] += n
+    
+  def AddTimeout(self, n=1):
+    self._counts['assigned'] -= n
+    self._counts['tocrawl'] += n
+    self.net_timeouts += n
+  
+  def AddFailedRefresh(self, n=1):
+    self._counts['failed'] -= n
+    self._counts['tocrawl'] += n
+    
+    
+
 class CrawlState(object):
   def __init__(self, crawl, db_conn, hostids_cache):
     self.crawl = crawl
     self.db_conn = db_conn    
     self._InitializeDatabase(hostids_cache)
+    self.counter = StatusCounter(self.StatusCounts())
 
   def _Cursor(self):
     return self.db_conn.cursor()
@@ -247,8 +298,9 @@ class CrawlState(object):
     to the to-crawl database if necessary.
     """
     cursor.execute("insert into pages (hostid, url) values (?,?)", url_pair)
+    self.counter.AddToCrawl()
     docid = cursor.lastrowid
-    cursor.execute("insert or ignore into crawl (docid, timestamp) values (?, DATETIME('now'))", (docid,))
+    cursor.execute("insert into crawl (docid, timestamp) values (?, DATETIME('now'))", (docid,))
     return docid
 
   def _InsertOnDomainAnchors(self, cursor, from_docid, anchors):
@@ -331,6 +383,7 @@ class CrawlState(object):
     docids = [(docid,) for docid, url_pair in docids_and_url_pairs]
     c.executemany("update crawl set status='ASSIGNED', timestamp=DATETIME('now') where docid=?", docids)
     self._Commit()
+    self.counter.AddAssigned(len(docids_and_url_pairs))
     return docids_and_url_pairs
 
   def SubmitTaskResult(self, result):
@@ -343,6 +396,7 @@ class CrawlState(object):
     c = self._Cursor()
     if result.success:
       if result.is_redirect:
+        self.counter.AddRedirect()
         url_pair = result.redirect_url_pair
         if self.crawl.IsOnDomain(url_pair):
           docid = self.GetDocid(url_pair)
@@ -351,12 +405,14 @@ class CrawlState(object):
           self._InsertOffDomainRedirect(c, result.docid, url_pair)
         c.execute("update crawl set status='REDIRECT', timestamp=DATETIME('now') where docid=?", (result.docid,))
       else:
+        self.counter.AddComplete()
         self._InsertOnDomainAnchors(c, result.docid, result.ondomain_anchors)
         self._InsertOffDomainAnchors(c, result.docid, result.offdomain_anchors)
         local_path_relative_to_db = "html/%d.html" % result.docid  # TODO(fedele): don't hardcode this
         c.execute("update crawl set status='COMPLETE', timestamp=DATETIME('now') where docid=?", (result.docid,))
         c.execute("update pages set local_path=? where docid=?", (local_path_relative_to_db, result.docid))
     else:
+      self.counter.AddFailed()
       c.execute("update crawl set status='FAILED', timestamp=DATETIME('now'), num_failures=num_failures+1 where docid=?", (result.docid,))
       c.execute("insert into errors (docid, url, timestamp, traceback) values (?,?,DATETIME('now'),?)", (result.docid, result.url, result.error_message))      
     self._Commit()
@@ -369,8 +425,12 @@ class CrawlState(object):
     failed too many times to "ABORTED".
     """
     c = self._Cursor()
-    c.execute("update crawl set status='ABORTED' where status='FAILED' and num_failures > %d" % FLAGS.max_failures)
-    c.execute("update crawl set status='TOCRAWL' where (status='ASSIGNED' or status='FAILED') and timestamp < datetime('now', '-%d seconds')" % timeout)
+    c.execute("update crawl set status='ABORTED', timestamp=DATETIME('now') where status='FAILED' and num_failures > %d" % FLAGS.max_failures)    
+    self.counter.AddAborted(c.rowcount)
+    c.execute("update crawl set status='TOCRAWL', timestamp=DATETIME('now'), num_failures=num_failures+1 where status='ASSIGNED' and timestamp < datetime('now', '-%d seconds')" % timeout)
+    self.counter.AddTimeout(c.rowcount)
+    c.execute("update crawl set status='TOCRAWL', timestamp=DATETIME('now') where status='FAILED' and timestamp < datetime('now', '-%d seconds')" % timeout)
+    self.counter.AddFailedRefresh(c.rowcount)
     self._Commit()
     
   ALL_STATUSES = ("ASSIGNED", "COMPLETE", "FAILED", "REDIRECT", "TOCRAWL", "ABORTED")
@@ -435,6 +495,7 @@ def WorkerThreadMain(crawl, task_queue, result_queue):
     result_queue.put(crawl.HandleTask(task_queue.get()))
 
 
+
 def SchedulerThreadMain(crawl, task_queue, result_queue):
   check_every_interval        = 1
   target_task_queue_size      = 600
@@ -446,6 +507,8 @@ def SchedulerThreadMain(crawl, task_queue, result_queue):
   # Remove any currently pending urls that exist at the start
   # of a crawl - they're probably leftovers from a previous run.
   crawl_state.CleanUpTimedOutAssignments(0)  
+  
+  crawl_start_time = time.time()
 
   while True:
     # Process completed results for as long as we can...
@@ -462,7 +525,7 @@ def SchedulerThreadMain(crawl, task_queue, result_queue):
         n += 1
     except Queue.Empty:
       pass
-    submit_time_taken = time.time() - start_time
+    insert_time_taken = time.time() - start_time
     num_pending = result_queue.qsize()    
 
     # Cleanup any assignments that have timed out.    
@@ -475,12 +538,18 @@ def SchedulerThreadMain(crawl, task_queue, result_queue):
       for task in tasks:
         task_queue.put(task)
     
-    counts = crawl_state.StatusCounts()
-    total_time_taken = time.time() - start_time
-    template = "%7d processed (insert=%5.2fs total=%5.2fs) %5d pending -- %9d complete, %9d tocrawl, %5d failed"    
-    args = (n, submit_time_taken, total_time_taken, num_pending, counts['COMPLETE'], counts['TOCRAWL'], counts['FAILED'])    
-    print template % args
+    update_time_taken = time.time() - start_time
 
+    # counts = crawl_state.StatusCounts()
+    counts = crawl_state.counter._counts
+    net_complete = crawl_state.counter.net_complete   
+    current_time = time.time() - crawl_start_time
+    crawl_rate = net_complete / (current_time or 1)
+    
+    template = "%8.2f seconds: %7d processed (insert=%5.2fs total=%5.2fs) %5d pending -- %9d complete, %9d tocrawl, %5d failed -- net rate: %6.2f"    
+    args = (current_time, n, insert_time_taken, update_time_taken, num_pending, counts['complete'], counts['tocrawl'], counts['failed'], crawl_rate)    
+    print template % args
+    
     # Go to sleep!
     if num_pending < no_sleep_threshold:
       time.sleep(check_every_interval)
@@ -507,6 +576,9 @@ def main(argv):
 
   crawl_state = crawl.MakeCrawlState()
   seed_urls = ["http://" + h for h in hostnames]  
+  if FLAGS.seed_urls:
+    seed_urls = [x.strip() for x in open(FLAGS.seed_urls)] + seed_urls
+  print "SEED URLS:", seed_urls
   crawl_state.AddUrls(seed_urls)
 
   SchedulerThreadMain(*worker_args)
