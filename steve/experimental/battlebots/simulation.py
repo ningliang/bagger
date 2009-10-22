@@ -90,14 +90,36 @@ def Square(scale):
   return [(-scale, -scale), (scale, -scale), (scale, scale), (-scale, scale), (-scale, -scale)]
 
 
+def RandomShape(radius, num_vertices):
+  angle_step = 2 * math.pi / num_vertices
+  theta = random.gauss(0, angle_step)
+  points = []
+  for n in xrange(num_vertices):
+    theta += angle_step + random.gauss(0, 0.1 * angle_step)
+    while True:
+      r = random.gammavariate(alpha=0.5*radius, beta=1.0)
+      if 0.3 * radius < r < radius:
+        break
+    print theta, r
+    pt = (r * math.cos(theta), r * math.sin(theta))
+    points.append(pt)
+  points.append(points[0])
+  return points
+
+
 class DefaultShapeLoader(object):
   def __call__(self, shape_name):
     if shape_name == 'level':
-      return Square(0.9)
+      shape = RandomShape(radius=0.9, num_vertices=7)
+      print shape
+      return shape
     elif shape_name == 'world':
       return Square(1.0)
     elif shape_name == 'robot':
       return Square(0.05)
+    elif shape_name == 'target':
+      return RandomShape(radius=0.3, num_vertices=random.randint(3, 5))
+
 
 def AffineTransform(position, angle):
   c = math.cos(angle)
@@ -140,11 +162,9 @@ class GameState(object):
     self.time_since_color_flip = 0
     self.AddObject('world', width=1, color=(0, 0, 0))
     self.AddObject('level', color=(0, 255, 255))
-    print "WORLD POINTS"
-    print self.WorldPoints(self.objects[-1])
-    print "SCREEN POINTS"
-    print self.ScreenPoints(self.objects[-1])
     self.AddObject('robot')
+    self.AddObject('target', color=(255, 0, 0))
+    self.objects[3][1]
 
   def GetRobotXform(self):
     "Return the robot position transform matrix"
