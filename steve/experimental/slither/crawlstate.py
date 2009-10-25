@@ -11,42 +11,9 @@ factor this better.
 TODO(fedele): refactor
 """
 
-# REmaining question: solved...
-#
-# So tonight, you've increased this things rate first to 8 hz,
-# and then to 28hz (disabling journal and synchronous to be off...)
-# now, you seem to be spending most of your time churning cycles
-# getting counts on the statuses (because clearly this is linear, so you've made
-# a very efficient quadratic program...)  regardless, churning cycles
-# for 1.20s status reports isn't my style...
-#
-# of course, you'll do that tomorrow
-# you've made very good progress on it today...
-# very!  literotica was a bit tougher, and pushed the crawler in ways you didn't expect
-#   e.g. redirects
-#        the desire to crawl multiple domains
-#
-# one more thing you'd like to do... write a simple web interface to the thing
-# i guess you give it the crawl_state but in read-only form...
-
-
-# OK, so there's a remaining question - what exactly _is_ a url_pair?
-# well, a url_pair is EITHER (hostid, path) or (hostname, path)
-# where we use hostid if the url is ONDOMAIN and hostname if it is OFF
-# we'd like it to be such that ANYWHERE that the phrase url_pair is used,
-#
-# So... we should construct and maintain this invariant.
-# We can then know in DoFetch that, because this url we're fetching MUST
-# be ondomain, that it MUST be in hostid form, and thus MUST be returned as such
-#
-# So, if we're ever talking about ONDOMAIN anchors, we know the url_pairs
-# referenced must be (hostid, path) - e.g. any _Insert method, in DoFetch,
-# in HandleTask, etc...
-#
-# if we're ever talking about OFFDOMAIN anchors... nope
-#
 
 from cobra.steve.util.prelude import *
+from cobra.steve.experimental.slither import crawlconf
 
 import urllib2
 import urlparse
@@ -56,13 +23,10 @@ import sqlite3
 from sgmllib import SGMLParser
 
 
-flags.DefineString("output_dir", "D:/data/crawls/", "The root directory to output crawl results to.")
 flags.DefineString("crawlname", None, "The root hostname of the site to crawl, e.g. --crawlname=literotica")
-flags.DefineString("hostnames", None, "The root hostnames of the site to crawl, e.g. --hostnames=literotica.com,www.literotica.com")
 flags.DefineInteger("num_workers", 10, "The number of worker threads to use.")
 flags.DefineInteger("max_failures", 3, "Maximum number of failures before aborting a url.")
 flags.DefineBoolean("use_cache", True, "Whether or not to use a local cache when fetching ")
-flags.DefineString("seed_urls", None, "Path to a file containing extra urls to use as seeds.")
 
 
 
@@ -72,15 +36,19 @@ def EnsureDirectoryExists(dirpath):
 
 
 class Crawl(object):
-  def __init__(self, hostnames, crawldir, db_name="corpus.db"):
+  def __init__(self, hostnames, crawldir, seed_urls, db_name="corpus.db"):
     self.hostnames = hostnames
     self._cached_hostids = dict((h, 0) for h in hostnames)
     self._cached_hostnames = {}    
     self.crawldir = crawldir
     self._db_path = os.path.join(self.crawldir, db_name)
     self._html_dir = os.path.join(self.crawldir, "html")    
+    self.seed_urls = seed_urls
     EnsureDirectoryExists(self.crawldir)
     EnsureDirectoryExists(self._html_dir)
+    
+  def MaxFailures(self):
+    return FLAGS.max_failures
     
   def IsOnDomain(self, url_pair):    
     hxx, path = url_pair
@@ -91,6 +59,7 @@ class Crawl(object):
     conn.text_factory = str
     crawl_state = CrawlState(self, conn, self._cached_hostids)
     self._cached_hostnames = dict((hostid, hostname) for hostname, hostid in self._cached_hostids.iteritems())
+    crawl_state.AddUrls(self.seed_urls)
     return crawl_state
 
   def LocalPath(self, docid):
@@ -157,8 +126,9 @@ class Crawl(object):
       return data, None
     else:
       # TODO(fedele): add referrer headers
+      # TODO(fedele): user-agent
       # TODO(fedele): handle cookies
-      # TODO(fedele): add the ability to fetch compressed      
+      # TODO(fedele): add the ability to fetch compressed
       request = urllib2.Request(url)
       response = urllib2.urlopen(request)
       data = response.read()   
@@ -279,9 +249,6 @@ class CrawlState(object):
     c.execute("create table if not exists offdomain_redirects (from_docid integer, to_host text, to_path text)")    
     self._Commit()
     c = self._Cursor()
-    # OK, so we aren't actually using the cache to POPULATE this table... at least
-    # no _values_ in the cache will be reflected.  Instead they'll be updated later
-    # to reflect whatever's in the cache.  Still, this is perhaps a bit misleading...
     hostnames = [(hostname,) for hostname in hostids_cache]        
     c.executemany("insert or ignore into hosts (hostname) values (?)", hostnames)    
     self._Commit()
@@ -425,7 +392,7 @@ class CrawlState(object):
     failed too many times to "ABORTED".
     """
     c = self._Cursor()
-    c.execute("update crawl set status='ABORTED', timestamp=DATETIME('now') where status='FAILED' and num_failures > %d" % FLAGS.max_failures)    
+    c.execute("update crawl set status='ABORTED', timestamp=DATETIME('now') where status='FAILED' and num_failures > %d" % crawl.MaxFailures())    
     self.counter.AddAborted(c.rowcount)
     c.execute("update crawl set status='TOCRAWL', timestamp=DATETIME('now'), num_failures=num_failures+1 where status='ASSIGNED' and timestamp < datetime('now', '-%d seconds')" % timeout)
     self.counter.AddTimeout(c.rowcount)
@@ -444,6 +411,11 @@ class CrawlState(object):
     counts = dict((s, 0) for s in self.ALL_STATUSES)
     counts.update(dict(c))
     return counts
+    
+  def DocsCachedLocallyIter(self):
+    c = self._Cursor()
+    c.execute("select docid, url from pages where local_path != ''")
+    return ((docid, url, self.crawl.LocalPath(docid)) for docid, url in c)
 
 
 class AnchorExtractingParser(SGMLParser):
@@ -554,15 +526,26 @@ def SchedulerThreadMain(crawl, task_queue, result_queue):
     if num_pending < no_sleep_threshold:
       time.sleep(check_every_interval)
 
+      
+def CrawlFromFlags():  
+  assert FLAGS.crawlname is not None, "please specify a name for this crawl via the --crawlname flag"
+  crawlname = FLAGS.crawlname
+  master = crawlconf.LoadCrawlMaster()
+  hostnames = master.GetHostNames(crawlname)
+  seed_urls = master.GetSeedUrls(crawlname)  
+  crawldir = master.GetCrawlDir(crawlname)
+  host_roots = ["http://" + h for h in hostnames]  
+  seed_urls.extend(host_roots)
+  return Crawl(hostnames, crawldir, seed_urls)
+  
+
+def CrawlStateFromFlags():
+  crawl = CrawlFromFlags()
+  return crawl, crawl.MakeCrawlState()
+
 
 def main(argv):  
-  assert FLAGS.hostnames is not None, "please specify hostnames to crawl via the --hostnames flag"
-  assert FLAGS.crawlname is not None, "please specify a name for this crawl via the --crawlname flag"
-  hostnames = FLAGS.hostnames.split(',')    
-  crawldir = os.path.join(FLAGS.output_dir, FLAGS.crawlname)
-  
-  crawl = Crawl(hostnames, crawldir)
-  
+  crawl = CrawlFromFlags()  
   task_queue = Queue.Queue()
   result_queue = Queue.Queue()
 
@@ -572,14 +555,7 @@ def main(argv):
     worker = threading.Thread(target=WorkerThreadMain, args=worker_args)
     worker.daemon = True
     worker.start()
-    workers.append(worker)
-
-  crawl_state = crawl.MakeCrawlState()
-  seed_urls = ["http://" + h for h in hostnames]  
-  if FLAGS.seed_urls:
-    seed_urls = [x.strip() for x in open(FLAGS.seed_urls)] + seed_urls
-  print "SEED URLS:", seed_urls
-  crawl_state.AddUrls(seed_urls)
+    workers.append(worker) 
 
   SchedulerThreadMain(*worker_args)
 

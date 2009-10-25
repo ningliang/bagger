@@ -45,10 +45,20 @@ def rate_specific(request, bag_id):
 
 def serve_image(request, bag_id):
   bag = Handbag.objects.get(id=bag_id)
-  fullpath = os.path.join(settings.IMAGES_DIRECTORY, bag.original_image_path)  
+  fullpath = os.path.join(settings.IMAGES_DIRECTORY, bag.original_image_path)
   mimetype, encoding = mimetypes.guess_type(fullpath)
   data = open(fullpath, 'rb').read()
   return HttpResponse(data, mimetype=mimetype)
+  
+  
+def serve_thumbnail_image(request, bag_id):
+  bag = Handbag.objects.get(id=bag_id)
+  fullpath = os.path.join(settings.IMAGES_DIRECTORY, bag.original_image_path)
+  thumbnail_filepath = thumbnail(fullpath)  
+  mimetype, encoding = mimetypes.guess_type(thumbnail_filepath)
+  data = open(thumbnail_filepath, 'rb').read()
+  return HttpResponse(data, mimetype=mimetype)
+  
   
 
 def rate_random(request):
@@ -66,4 +76,37 @@ def rate_random(request):
     return HttpResponseRedirect("/rate/%s/" % random_id)
   else:
     return HttpResponse("wow, you're awesome - you've already rated them all!  come back later")
+    
+    
+from PIL import Image
+import os.path
+import StringIO
+
+def thumbnail(filename, size=(50, 50), output_filename=None):
+  image = Image.open(filename)
+  if image.mode not in ('L', 'RGB'):
+    image = image.convert('RGB')
+  image = image.resize(size, Image.ANTIALIAS)
+
+  # get the thumbnail data in memory.
+  if not output_filename:
+    output_filename = get_default_thumbnail_filename(filename)
+  image.save(output_filename, image.format) 
+  return output_filename
+
+  
+def thumbnail_string(buf, size=(50, 50)):
+  f = StringIO.StringIO(buf)
+  image = Image.open(f)
+  if image.mode not in ('L', 'RGB'):
+    image = image.convert('RGB')
+  image = image.resize(size, Image.ANTIALIAS)
+  o = StringIO.StringIO()
+  image.save(o, "JPEG")
+  return o.getvalue()
+
+    
+def get_default_thumbnail_filename(filename):
+  path, ext = os.path.splitext(filename)
+  return path + '.thumb.jpg'
    

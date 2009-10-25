@@ -6,3 +6,4 @@ a.out
 *.pb.h
 *.pb.cc
 *dropin.cache*
+*.crawlconf
